@@ -9,49 +9,6 @@ public class Block {
 	private int[][] tile;
 	
 	public Block(int piece) {
-//		if (piece == 0) { //Line block
-//			int[][] temp = { {1, 1, 1, 1}, 
-//							 {0, 0, 0, 0}, 
-//							 {0, 0, 0, 0}, 
-//							 {0, 0, 0, 0} };
-//			tile = temp;
-//		} else if (piece == 1) { //Square block
-//			int[][] temp = { {1, 1, 0, 0},
-//							 {1, 1, 0, 0},
-//							 {0, 0, 0, 0},
-//							 {0, 0, 0, 0} };
-//			tile = temp;
-//		} else if (piece == 2) { //T-block
-//			int[][] temp = { {0, 1, 0, 0},
-//							 {1, 1, 1, 0},
-//							 {0, 0, 0, 0},
-//							 {0, 0, 0, 0} };
-//			tile = temp;
-//		} else if (piece == 3) { //J-block
-//			int[][] temp = { {1, 0, 0, 0},
-//							 {1, 1, 1, 0},
-//							 {0, 0, 0, 0},
-//							 {0, 0, 0, 0} };
-//			tile = temp;
-//		} else if (piece == 4) { //L-block
-//			int[][] temp = { {0, 0, 1, 0},
-//							 {1, 1, 1, 0},
-//							 {0, 0, 0, 0},
-//							 {0, 0, 0, 0} };
-//			tile = temp;
-//		} else if (piece == 5) { //S-block
-//			int[][] temp = { {0, 1, 1, 0},
-//							 {1, 1, 0, 0},
-//							 {0, 0, 0, 0},
-//							 {0, 0, 0, 0} };
-//			tile = temp;
-//		} else if (piece == 6) { //Z-block
-//			int[][] temp = { {1, 1, 0, 0},
-//							 {0, 1, 1, 0},
-//							 {0, 0, 0, 0},
-//							 {0, 0, 0, 0} };
-//			tile = temp;
-//		}
 		if (piece == 1) { //Line block
 			int[][] temp = { {0, 0, 0, 0}, 
 							 {1, 1, 1, 1}, 
