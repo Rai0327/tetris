@@ -1,10 +1,5 @@
 package tetrisPackage;
 
-import java.awt.Image;
-import java.awt.Polygon;
-import java.awt.Toolkit;
-import java.net.URL;
-
 public class Block {
 	private int[][] tile;
 	
