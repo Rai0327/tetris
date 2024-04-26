@@ -115,7 +115,7 @@ public class Block {
 		return tile;
 	}
 	
-	public void setTile() {
-		
+	public void setTile(int[][] tile) {
+		this.tile = tile;
 	}
 }
