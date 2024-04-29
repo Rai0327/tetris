@@ -44,8 +44,6 @@ public class Store {
 		    	String name = scanner.next();
 		    	
 		    	scores.add(new Score(score, name));
-		    	
-//		    	System.out.println("Scanned in " + name + " with score of " + score);
 		    }
 		    
 		    scanner.close();
