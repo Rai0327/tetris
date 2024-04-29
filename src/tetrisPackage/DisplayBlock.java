@@ -37,7 +37,7 @@ public class DisplayBlock {
 
 		rW = rectWidth;
 		
-		image = ImageIO.read(new File("president.jpeg"));
+		image = ImageIO.read(new File("bg0.jpeg"));
 		
 		initRect();
 		
@@ -96,6 +96,52 @@ public class DisplayBlock {
 			}
 		}
 	}
+	
+	
+	public boolean bottomCollision(Rectangle other) {
+		
+		boolean isCollided = false;
+		
+		for (int r = 0; r < rects.length; r++) {
+			for (int c = 0; c < rects[r].length; c++) {
+
+				if (rects[r][c] != null) {
+
+					if (other.intersects(rects[r][c])) {
+
+						System.out.println("Floor max y" + other.getMaxY());
+						System.out.println("Floor min y" + other.getMinY());
+						
+						System.out.println("Rect max y" + rects[r][c].getMaxY());
+
+						System.out.println("Rect min y" + rects[r][c].getMaxY());
+						if (other.getMinY() == rects[r][c].getMaxY()) {
+							isCollided = true;
+						}
+					}
+				}
+			}
+		}
+		return isCollided;
+	}
+	
+	public boolean sideCollision(Rectangle other) {
+		for (int r = 0; r < rects.length; r++) {
+			for (int c = 0; c < rects[r].length; c++) {
+
+				if (rects[r][c] != null) {
+				if (other.getMaxX() > rects[r][c].getMaxX()) {
+					return true;
+				}
+				if (other.getMinX() < rects[r][c].getMinX()) {
+					return true;
+				}
+				}
+			}
+		}
+		return false;
+	}
+	
 	
 	
 	
