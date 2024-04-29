@@ -61,10 +61,19 @@ public class Frame extends JPanel implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
 		
-    	if (e.getKeyCode() == 68) {
+    	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
     		dispBlock.rotateBlock();
     		dispBlock.updateRect();
     		
+    	}
+    	if (e.getKeyCode() == 68 || e.getKeyCode() == 39) {
+    		dispBlock.right();
+    	}
+    	if (e.getKeyCode() == 65 || e.getKeyCode() == 37) {
+    		dispBlock.left();
+    	}
+    	if (e.getKeyCode() == 83 || e.getKeyCode() == 40) {
+    		dispBlock.down();
     	}
     	
     	this.paint(getGraphics());

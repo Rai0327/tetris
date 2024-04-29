@@ -71,6 +71,18 @@ public class DisplayBlock {
 		block.rotate();
 	}
 	
+	public void right() {
+		sX += 10;
+	}
+	
+	public void left() {
+		sX -= 10;
+	}
+	
+	public void down() {
+		sY += 10;
+	}
+	
 	public void paint(Graphics g) {
 		
 		Graphics2D g2 = (Graphics2D)g;
