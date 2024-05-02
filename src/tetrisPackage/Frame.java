@@ -10,13 +10,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Stack;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class Frame extends JPanel implements KeyListener {
 	
-	private Block block = new Block(3);
+	private Stack<Block> blocks = new Stack<Block>();
 	
 	private Rectangle rect = new Rectangle(0, 200, 500, 10);
 	
@@ -33,7 +34,6 @@ public class Frame extends JPanel implements KeyListener {
 	public void paint(Graphics g) {
 
 		super.paintComponent(g);
-		
 			
 			renderer.paint(g);
 		
@@ -47,11 +47,11 @@ public class Frame extends JPanel implements KeyListener {
 		
 		initMap();
 		
-		System.out.println(map);
-		
 		
 		try {
-			dispBlock = new DisplayBlock(new Point(0, 0), 30, block);
+			blocks.add(new Block(2));
+			blocks.peek().setPosition(new Point(width/2-2, 1));
+			updateBlockOnMap();
 			renderer = new RenderMap(new Point(0,0), 30, map);
 			
 		} catch (IOException e) {
@@ -71,26 +71,44 @@ public class Frame extends JPanel implements KeyListener {
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
-
-    	System.out.println("Rahul");
 	}
 	
     @Override
     public void keyPressed(KeyEvent e) {
 		
     	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
-    		dispBlock.rotateBlock();
-    		dispBlock.updateRect();
+    		blocks.peek().rotate();
+
+    		updateBlockOnMap();
     		
     	}
     	if (e.getKeyCode() == 68 || e.getKeyCode() == 39) {
-    		dispBlock.right();
+    		Point current = blocks.peek().getPosition();
+    		
+    		current.x += 1;
+    		
+    		blocks.peek().setPosition(current);
+
+    		updateBlockOnMap();
+    		
     	}
     	if (e.getKeyCode() == 65 || e.getKeyCode() == 37) {
-    		dispBlock.left();
+    		Point current = blocks.peek().getPosition();
+    		
+    		current.x -= 1;
+    		
+    		blocks.peek().setPosition(current);
+
+    		updateBlockOnMap();
     	}
     	if (e.getKeyCode() == 83 || e.getKeyCode() == 40) {
-    		dispBlock.down();
+    		Point current = blocks.peek().getPosition();
+    		
+    		current.y += 1;
+    		
+    		blocks.peek().setPosition(current);
+
+    		updateBlockOnMap();
     	}
     	
     	this.paint(getGraphics());
@@ -110,6 +128,7 @@ public class Frame extends JPanel implements KeyListener {
 	}
 	
 	public void initMap() {
+		map.clear();
 		ArrayList<Integer> temp = new ArrayList<Integer>();
 		for (int i = 0; i < width; i++) {
 			temp.add(TileType.WALL);
@@ -141,6 +160,29 @@ public class Frame extends JPanel implements KeyListener {
 		
 		map.add(temp2);
 	
+	}
+	
+	public void updateBlockOnMap() {
+		
+		Point p = blocks.peek().getPosition();
+
+		ArrayList<ArrayList<Integer>> blockArray = blocks.peek().getTrimmedTile();
+		
+		int trimmedWidth = blockArray.size();
+		int trimmedHeight = blockArray.get(0).size();
+		
+		initMap();
+		
+		if ((p.x > 0 && p.x < map.size()-trimmedWidth) && (p.y > 0 && p.y < map.get(0).size()-trimmedHeight)) {
+			for (int x = p.x; x < p.x+trimmedWidth; x++) {
+				for (int y = p.y; y < p.y+trimmedHeight; y++) {
+					
+					if (blockArray.get(x-p.x).get(y-p.y) != 0) {
+						map.get(x).set(y, blockArray.get(x-p.x).get(y-p.y));
+					}
+				}
+			}
+		}
 	}
 
 }

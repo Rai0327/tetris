@@ -1,12 +1,17 @@
 package tetrisPackage;
 
+import java.awt.Point;
+import java.util.ArrayList;
+
 public class Block {
 	private int[][] tile;
+	
+	private Point position;
 	
 	public Block(int piece) {
 		if (piece == 1) { //Line block
 			int[][] temp = { {0, 0, 0, 0}, 
-							 {1, 1, 1, 1}, 
+							 {2, 2, 2, 2}, 
 							 {0, 0, 0, 0}, 
 							 {0, 0, 0, 0} };
 			tile = temp;
@@ -18,32 +23,32 @@ public class Block {
 			tile = temp;
 		} else if (piece == 3) { //T-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 3, 0, 0},
-							 {3, 3, 3, 0},
+							 {0, 2, 0, 0},
+							 {2, 2, 2, 0},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 4) { //J-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 4, 0, 0},
-							 {0, 4, 4, 4},
+							 {0, 2, 0, 0},
+							 {0, 2, 2, 2},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 5) { //L-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 0, 5, 0},
-							 {5, 5, 5, 0},
+							 {0, 0, 2, 0},
+							 {2, 2, 2, 0},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 6) { //S-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 6, 6, 0},
-							 {6, 6, 0, 0},
+							 {0, 2, 2, 0},
+							 {2, 2, 0, 0},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 7) { //Z-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 7, 7, 0},
-							 {0, 0, 7, 7},
+							 {0, 2, 2, 0},
+							 {0, 0, 2, 2},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		}
@@ -67,7 +72,53 @@ public class Block {
 		return tile;
 	}
 	
+	public Point getPosition() {
+		return position;
+	}
+	
+	public void setPosition(Point p) {
+		
+		position = p;
+	}
+	
 	public void setTile(int[][] tile) {
 		this.tile = tile;
+	}
+	
+	public ArrayList<ArrayList<Integer>> getTrimmedTile() {
+		ArrayList<ArrayList<Integer>> trimmedTiles = new ArrayList<ArrayList<Integer>>();
+		
+		for (int r = 0; r < tile.length; r++) {
+			ArrayList<Integer> temp = new ArrayList<Integer>();
+			boolean isRowNotZero = false;
+			for (int c = 0; c < tile[0].length; c++) {
+				if (tile[r][c] != 0) {
+					isRowNotZero |= true;
+				}
+				temp.add(tile[r][c]);
+			}
+			if (isRowNotZero) {
+				trimmedTiles.add(temp);
+			}
+		}
+		
+		for (int c = 0; c < trimmedTiles.size(); c++) {
+			boolean isColumnZero = true;
+			for (int r = 0; r < trimmedTiles.get(c).size(); r++) {
+				if (trimmedTiles.get(c).get(r) != 0) {
+					isColumnZero = false;
+					break;
+				}
+			}
+
+			if (isColumnZero) {
+
+				for (int r = 0; r < trimmedTiles.size(); r++) {
+					trimmedTiles.get(r).remove(c);
+				}
+			}
+		}
+		
+		return trimmedTiles;
 	}
 }

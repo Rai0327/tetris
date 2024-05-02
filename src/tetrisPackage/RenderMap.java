@@ -19,9 +19,12 @@ public class RenderMap {
 	// https://stackoverflow.com/questions/15327220/fill-rectangle-with-pattern-in-java-swing
 	
 	ArrayList<ArrayList<Integer>> map = new ArrayList<ArrayList<Integer>>();
+	ArrayList<ArrayList<Integer>> oldMap = new ArrayList<ArrayList<Integer>>();
 	int sX = 0;
 	int sY = 0;
 	int rW;
+	
+	boolean initialDraw = true;
 	
 	ArrayList<BufferedImage> image = new ArrayList<BufferedImage>();
 	
@@ -33,13 +36,8 @@ public class RenderMap {
 		
 
 		rW = rectWidth;
-
-		
-		System.out.println("Hud");
 		
 		this.map = map;
-		
-		System.out.println("Hus");
 		
 		image.add(ImageIO.read(new File("bg0.jpeg")));
 		image.add(ImageIO.read(new File("bg1.jpeg")));
@@ -56,20 +54,60 @@ public class RenderMap {
 		int y = 0;
 		int x = 0;
 		
+		ArrayList<ArrayList<Integer>> diff = findDifference();
+		
+		if (diff == null | initialDraw) {
+			diff = map;
+		}
+		
 		for (ArrayList<Integer> rows : map) {
 			for (Integer tile : rows) {
 				
-				Rectangle rect = new Rectangle(sX+x*rW, sY+y*rW, rW, rW);
-				TexturePaint text = new TexturePaint(image.get(tile), rect);
-				g2.setPaint(text);
-				g2.fill(rect);
+
+				if (tile > 1) {
+					Rectangle rect = new Rectangle(sX+x*rW, sY+y*rW, rW, rW);
+					TexturePaint text = new TexturePaint(image.get(tile), rect);
+					g2.setPaint(text);
+					g2.fill(rect);
+				} else if (initialDraw) {
+					Rectangle rect = new Rectangle(sX+x*rW, sY+y*rW, rW, rW);
+					TexturePaint text = new TexturePaint(image.get(tile), rect);
+					g2.setPaint(text);
+					g2.fill(rect);
+				}
 				
 				x++;
 			}
 			x = 0;
 			y++;
 		}
+		
+		initialDraw = false;
+		
+		oldMap = map;
 				
+	}
+	
+	public ArrayList<ArrayList<Integer>> findDifference() {
+		ArrayList<ArrayList<Integer>> diff = new ArrayList<ArrayList<Integer>>();
+		
+		if (map.size() == oldMap.size() && map.get(0).size() == oldMap.get(0).size()) {
+			for (int r = 0; r < map.size(); r ++ ) {
+				ArrayList<Integer> temp = new ArrayList<Integer>();
+				for (int c = 0; c < map.get(0).size(); c++) {
+					if (map.get(r).get(c) != oldMap.get(r).get(c)) {
+						temp.add(map.get(r).get(c));
+					} else {
+						temp.add(0);
+					}
+				}
+				diff.add(temp);
+			}
+		}
+		
+		return diff;
+		
+		
 	}
 	
 	
