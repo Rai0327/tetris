@@ -64,7 +64,7 @@ public class Frame extends JPanel implements KeyListener {
 		}
 		
 		JFrame frame = new JFrame("Tetris Game");
-		frame.setSize(new Dimension(900, 600));
+		frame.setSize(new Dimension(900, 900));
 		frame.setBackground(Color.blue);
 		frame.addKeyListener(this);
 		frame.add(this);
@@ -87,7 +87,7 @@ public class Frame extends JPanel implements KeyListener {
 		Point current = blocks.peek().getPosition();
 		
     	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
-    		if (current.x < map.get(0).size()-trimmedTile.get(0).size()) {
+    		if ((current.x < map.get(0).size()-trimmedTile.get(0).size()) && ((current.y < map.size()-trimmedTile.size()-1))) {
 
     		blocks.peek().rotate();
 
@@ -121,7 +121,7 @@ public class Frame extends JPanel implements KeyListener {
     	if (e.getKeyCode() == 83 || e.getKeyCode() == 40) {
 
     		
-    		if (current.y < map.size()-1) {
+    		if (current.y < map.size()-trimmedTile.size()-1) {
     		
     		
     		current.y += 1;
