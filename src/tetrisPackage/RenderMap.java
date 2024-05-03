@@ -20,6 +20,7 @@ public class RenderMap {
 	
 	ArrayList<ArrayList<Integer>> map = new ArrayList<ArrayList<Integer>>();
 	ArrayList<ArrayList<Integer>> oldMap = new ArrayList<ArrayList<Integer>>();
+
 	int sX = 0;
 	int sY = 0;
 	int rW;
@@ -27,6 +28,8 @@ public class RenderMap {
 	boolean initialDraw = true;
 	
 	ArrayList<BufferedImage> image = new ArrayList<BufferedImage>();
+	
+	private BufferedImage bufferedImage;
 	
 	
 	public RenderMap(Point startPos, int rectWidth, ArrayList<ArrayList<Integer>> map) throws IOException {
@@ -44,70 +47,48 @@ public class RenderMap {
 		image.add(ImageIO.read(new File("bg2.jpeg")));
 		image.add(ImageIO.read(new File("bg3.jpeg")));
 		
+		image.add(ImageIO.read(new File("bg3.jpeg")));
 		
+		bufferedImage = new BufferedImage(rectWidth*map.get(0).size(), rectWidth*map.size(), BufferedImage.TYPE_INT_ARGB);
+		
+		oldMap = (ArrayList<ArrayList<Integer>>) map.clone();
+		
+		
+	}
+	
+	public void paintShape() {
+		
+	    Graphics2D g2 = bufferedImage.createGraphics();
+		
+		for (int y = 0; y < map.size(); y++) {
+			for (int x = 0; x < map.get(y).size(); x++) {
+				
+				Integer tile = map.get(y).get(x);
+				
+				if ((oldMap.get(y).get(x) != (map.get(y).get(x))) | initialDraw) {
+				
+					Rectangle rect = new Rectangle(sY+x*rW, sX+y*rW, rW, rW);
+					TexturePaint text = new TexturePaint(image.get(tile), rect);
+					g2.setPaint(text);
+					g2.fill(rect);
+				}
+			
+			}
+		}
+		
+		oldMap = (ArrayList<ArrayList<Integer>>) map.clone();
+	    initialDraw = false;
 	}
 	
 	public void paint(Graphics g) {
-		
 		Graphics2D g2 = (Graphics2D)g;
+		
+	    if (bufferedImage != null) {
 
-		int y = 0;
-		int x = 0;
-		
-		ArrayList<ArrayList<Integer>> diff = findDifference();
-		
-		if (diff == null | initialDraw) {
-			diff = map;
-		}
-		
-		for (ArrayList<Integer> rows : map) {
-			for (Integer tile : rows) {
+		    paintShape();
+	        g2.drawImage(bufferedImage, 0, 0, null);
+	     }
 				
-
-				if (tile > 1) {
-					Rectangle rect = new Rectangle(sX+x*rW, sY+y*rW, rW, rW);
-					TexturePaint text = new TexturePaint(image.get(tile), rect);
-					g2.setPaint(text);
-					g2.fill(rect);
-				} else if (initialDraw) {
-					Rectangle rect = new Rectangle(sX+x*rW, sY+y*rW, rW, rW);
-					TexturePaint text = new TexturePaint(image.get(tile), rect);
-					g2.setPaint(text);
-					g2.fill(rect);
-				}
-				
-				x++;
-			}
-			x = 0;
-			y++;
-		}
-		
-		initialDraw = false;
-		
-		oldMap = map;
-				
-	}
-	
-	public ArrayList<ArrayList<Integer>> findDifference() {
-		ArrayList<ArrayList<Integer>> diff = new ArrayList<ArrayList<Integer>>();
-		
-		if (map.size() == oldMap.size() && map.get(0).size() == oldMap.get(0).size()) {
-			for (int r = 0; r < map.size(); r ++ ) {
-				ArrayList<Integer> temp = new ArrayList<Integer>();
-				for (int c = 0; c < map.get(0).size(); c++) {
-					if (map.get(r).get(c) != oldMap.get(r).get(c)) {
-						temp.add(map.get(r).get(c));
-					} else {
-						temp.add(0);
-					}
-				}
-				diff.add(temp);
-			}
-		}
-		
-		return diff;
-		
-		
 	}
 	
 	

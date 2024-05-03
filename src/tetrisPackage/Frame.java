@@ -30,6 +30,8 @@ public class Frame extends JPanel implements KeyListener {
 	
 	private DisplayBlock dispBlock;
 	
+	private ArrayList<ArrayList<Integer>> trimmedTile = new ArrayList<ArrayList<Integer>>(); 
+	
 
 	public void paint(Graphics g) {
 
@@ -46,11 +48,13 @@ public class Frame extends JPanel implements KeyListener {
 	public Frame() {
 		
 		initMap();
-		
+
 		
 		try {
-			blocks.add(new Block(2));
+			blocks.add(new Block(5));
 			blocks.peek().setPosition(new Point(width/2-2, 1));
+
+			trimmedTile = blocks.peek().getTrimmedTile();
 			updateBlockOnMap();
 			renderer = new RenderMap(new Point(0,0), 30, map);
 			
@@ -71,44 +75,61 @@ public class Frame extends JPanel implements KeyListener {
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
+		
 	}
 	
     @Override
     public void keyPressed(KeyEvent e) {
+    	
+
+		trimmedTile = blocks.peek().getTrimmedTile();
+
+		Point current = blocks.peek().getPosition();
 		
     	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
+    		if (current.x < map.get(0).size()-trimmedTile.get(0).size()) {
+
     		blocks.peek().rotate();
 
     		updateBlockOnMap();
+    		}
     		
     	}
     	if (e.getKeyCode() == 68 || e.getKeyCode() == 39) {
-    		Point current = blocks.peek().getPosition();
+    		
+    		if (current.x < map.get(0).size()-trimmedTile.get(0).size()-1) {
     		
     		current.x += 1;
     		
     		blocks.peek().setPosition(current);
 
     		updateBlockOnMap();
+    		}
     		
     	}
     	if (e.getKeyCode() == 65 || e.getKeyCode() == 37) {
-    		Point current = blocks.peek().getPosition();
+    		
+    		if (current.x > 1) {
     		
     		current.x -= 1;
     		
     		blocks.peek().setPosition(current);
 
     		updateBlockOnMap();
+    		}
     	}
     	if (e.getKeyCode() == 83 || e.getKeyCode() == 40) {
-    		Point current = blocks.peek().getPosition();
+
+    		
+    		if (current.y < map.size()-1) {
+    		
     		
     		current.y += 1;
     		
     		blocks.peek().setPosition(current);
 
     		updateBlockOnMap();
+    		}
     	}
     	
     	this.paint(getGraphics());
@@ -165,20 +186,24 @@ public class Frame extends JPanel implements KeyListener {
 	public void updateBlockOnMap() {
 		
 		Point p = blocks.peek().getPosition();
-
-		ArrayList<ArrayList<Integer>> blockArray = blocks.peek().getTrimmedTile();
 		
-		int trimmedWidth = blockArray.size();
-		int trimmedHeight = blockArray.get(0).size();
+		int trimmedWidth = trimmedTile.size();
+		int trimmedHeight = trimmedTile.get(0).size();
+		
+		System.out.println("TrimW" + trimmedWidth);
+
+		System.out.println("TrimH" + trimmedHeight);
+		
+		System.out.println(trimmedTile);
 		
 		initMap();
 		
-		if ((p.x > 0 && p.x < map.size()-trimmedWidth) && (p.y > 0 && p.y < map.get(0).size()-trimmedHeight)) {
-			for (int x = p.x; x < p.x+trimmedWidth; x++) {
-				for (int y = p.y; y < p.y+trimmedHeight; y++) {
+		if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
+			for (int y = p.y; y < p.y+trimmedWidth; y++) {
+				for (int x = p.x; x < p.x+trimmedHeight; x++) {
 					
-					if (blockArray.get(x-p.x).get(y-p.y) != 0) {
-						map.get(x).set(y, blockArray.get(x-p.x).get(y-p.y));
+					if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
+						map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
 					}
 				}
 			}

@@ -102,12 +102,12 @@ public class Block {
 			}
 		}
 		
-		for (int c = 0; c < trimmedTiles.size(); c++) {
+		for (int c = 0; c < trimmedTiles.get(0).size(); c++) {
 			boolean isColumnZero = true;
-			for (int r = 0; r < trimmedTiles.get(c).size(); r++) {
-				if (trimmedTiles.get(c).get(r) != 0) {
+			for (int r = 0; r < trimmedTiles.size(); r++) {
+				if (trimmedTiles.get(r).get(c) != 0) {
 					isColumnZero = false;
-					break;
+					
 				}
 			}
 
@@ -116,6 +116,7 @@ public class Block {
 				for (int r = 0; r < trimmedTiles.size(); r++) {
 					trimmedTiles.get(r).remove(c);
 				}
+				c--;
 			}
 		}
 		
