@@ -28,7 +28,7 @@ public class Frame extends JPanel implements KeyListener {
 
 	private RenderMap renderer;
 	
-	private DisplayBlock dispBlock;
+	//private DisplayBlock dispBlock;
 	
 	private ArrayList<ArrayList<Integer>> trimmedTile = new ArrayList<ArrayList<Integer>>(); 
 	
@@ -87,12 +87,22 @@ public class Frame extends JPanel implements KeyListener {
 		Point current = blocks.peek().getPosition();
 		
     	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
-    		if ((current.x < map.get(0).size()-trimmedTile.get(0).size()) && ((current.y < map.size()-trimmedTile.size()-1))) {
 
     		blocks.peek().rotate();
-
+    		
     		updateBlockOnMap();
+    		
+    		while (current.x >= map.get(0).size() - trimmedTile.get(0).size()) {
+    			current.x--;
+    			blocks.peek().setPosition(current);
     		}
+    		
+    		while (current.y >= map.size()-trimmedTile.size()) {
+    			current.y--;
+    			blocks.peek().setPosition(current);
+    		}
+    		
+    		updateBlockOnMap();
     		
     	}
     	if (e.getKeyCode() == 68 || e.getKeyCode() == 39) {
@@ -186,6 +196,8 @@ public class Frame extends JPanel implements KeyListener {
 	public void updateBlockOnMap() {
 		
 		Point p = blocks.peek().getPosition();
+		
+		trimmedTile = blocks.peek().getTrimmedTile();
 		
 		int trimmedWidth = trimmedTile.size();
 		int trimmedHeight = trimmedTile.get(0).size();
