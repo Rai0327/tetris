@@ -12,6 +12,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Stack;
 
 import javax.swing.JFrame;
@@ -20,7 +22,8 @@ import javax.swing.Timer;
 
 public class Frame extends JPanel implements KeyListener, ActionListener {
 	
-	private Stack<Block> blocks = new Stack<Block>();
+	private Queue<Block> blocks = new LinkedList<Block>();
+	private ArrayList<Block> oldBlocks = new ArrayList<Block>();
 	
 	private int width = 10;
 	private int height = 20;
@@ -34,8 +37,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	private ArrayList<ArrayList<Integer>> trimmedTile = new ArrayList<ArrayList<Integer>>();
 	
 	private int count = 0;
+	private int touchCount = 0;
 	
-	private int level;
+	private int level = 29;
 	
 
 	public void paint(Graphics g) {
@@ -45,11 +49,23 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		renderer.paint(g);
 		
 		Point curr = blocks.peek().getPosition();
+		trimmedTile = blocks.peek().getTrimmedTile();
 		
 		count++;
 		
+		if (curr.y >= map.size()-trimmedTile.size()-1 || collides()) {
+			touchCount++;
+			if (touchCount == 30) {
+				oldBlocks.add(blocks.peek());
+				blocks.remove();
+				blocks.add(new Block((int) (Math.random() * 7) + 1));
+				blocks.peek().setPosition(new Point(width/2-2, 1));
+				touchCount = 0;
+			}
+		}
+		
 		//implement gravity
-		if (count % level == 0) {
+		if (count % level == 0 && !collides()) {
 			curr.y++;
 			
 			blocks.peek().setPosition(curr);
@@ -71,10 +87,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		
 		initMap();
 		
-		level = 29;
-		
 		try {
-			blocks.add(new Block(5));
+			blocks.add(new Block((int) (Math.random() * 7) + 1));
 			blocks.peek().setPosition(new Point(width/2-2, 1));
 
 			trimmedTile = blocks.peek().getTrimmedTile();
@@ -153,7 +167,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
     		updateBlockOnMap();
     		}
     	}
-    	if (e.getKeyCode() == 83 || e.getKeyCode() == 40) {
+    	if ((e.getKeyCode() == 83 || e.getKeyCode() == 40) && !collides()) {
 
     		
     		if (current.y < map.size()-trimmedTile.size()-1) {
@@ -165,6 +179,17 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
     		updateBlockOnMap();
     		}
+    	}
+    	
+    	if (e.getKeyCode() == 32) {
+    		//adjust when implementing switching blocks
+    		while (current.y <= map.size()-trimmedTile.size()) {
+    			current.y++;
+    		}
+    		
+    		blocks.peek().setPosition(current);
+
+    		updateBlockOnMap();
     	}
     	
     	this.paint(getGraphics());
@@ -251,6 +276,87 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				}
 			}
 		}
+	}
+	
+public boolean collides() {
+		
+		Point p1 = blocks.peek().getPosition();
+		
+		trimmedTile = blocks.peek().getTrimmedTile();
+		
+		for (Block b : oldBlocks) {
+			Point p2 = b.getPosition();
+			ArrayList<ArrayList<Integer>> bTrimmed = b.getTrimmedTile();
+			int[][] space = new int[height][width];
+			if (p1.y < p2.y) {
+				if (p1.x < p2.x) {
+					for (int r = 0; r < trimmedTile.size(); r++) {
+						for (int c = 0; c < trimmedTile.get(r).size(); c++) {
+							space[r][c] = 1;
+						}
+					}
+					for (int r = 0; r < bTrimmed.size(); r++) {
+						for (int c = 0; c < bTrimmed.get(r).size(); c++) {
+							space[r + (p2.y - p1.y)][c + (p2.x - p1.x)] = 2;
+						}
+					}
+				} else {
+					for (int r = 0; r < trimmedTile.size(); r++) {
+						for (int c = 0; c < trimmedTile.get(r).size(); c++) {
+							space[r][c + (p1.x - p2.x)] = 1;
+						}
+					}
+					for (int r = 0; r < bTrimmed.size(); r++) {
+						for (int c = 0; c < bTrimmed.get(r).size(); c++) {
+							space[r + (p2.y - p1.y)][c] = 2;
+						}
+					}
+				}
+			} else {
+				if (p1.x < p2.x) {
+					for (int r = 0; r < trimmedTile.size(); r++) {
+						for (int c = 0; c < trimmedTile.get(r).size(); c++) {
+							space[r + (p1.y - p2.y)][c] = 1;
+						}
+					}
+					for (int r = 0; r < bTrimmed.size(); r++) {
+						for (int c = 0; c < bTrimmed.get(r).size(); c++) {
+							space[r][c + (p2.x - p1.x)] = 2;
+						}
+					}
+				} else {
+					for (int r = 0; r < trimmedTile.size(); r++) {
+						for (int c = 0; c < trimmedTile.get(r).size(); c++) {
+							space[r + (p1.y - p2.y)][c + (p1.x - p2.x)] = 1;
+						}
+					}
+					for (int r = 0; r < bTrimmed.size(); r++) {
+						for (int c = 0; c < bTrimmed.get(r).size(); c++) {
+							space[r][c] = 2;
+						}
+					}
+				}
+			}
+			for (int r = 0; r < space.length; r++) {
+				for (int c = 0; c < space[r].length; c++) {
+					if (space[r][c] != 0) {
+						if (r != 0 && space[r][c] != space[r - 1][c] && space[r - 1][c] != 0) {
+							return true;
+						}
+//						if (r != space.length - 1 && space[r][c] != space[r + 1][c] && space[r + 1][c] != 0) {
+//							return true;
+//						}
+//						if (c != 0 && space[r][c] != space[r][c - 1] && space[r][c - 1] != 0) {
+//							return true;
+//						}
+//						if (c != space[r].length - 1 && space[r][c] != space[r][c + 1] && space[r][c + 1] != 0) {
+//							return true;
+//						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 }
