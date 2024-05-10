@@ -57,7 +57,7 @@ public class Frame extends JPanel implements KeyListener {
 			trimmedTile = blocks.peek().getTrimmedTile();
 			updateBlockOnMap();
 			renderer = new RenderMap(new Point(0,0), 30, map);
-			
+			renderer.randomizeBlockColor();
 		} catch (IOException e) {
 
 		      System.out.println("Something went wrong.");
