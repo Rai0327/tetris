@@ -183,13 +183,19 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
     	
     	if (e.getKeyCode() == 32) {
     		//adjust when implementing switching blocks
-    		while (current.y <= map.size()-trimmedTile.size()) {
+    		while (current.y < map.size()-trimmedTile.size()-1 && !collides()) {
     			current.y++;
     		}
     		
     		blocks.peek().setPosition(current);
-
+    		
     		updateBlockOnMap();
+    		
+    		oldBlocks.add(blocks.peek());
+			blocks.remove();
+			blocks.add(new Block((int) (Math.random() * 7) + 1));
+			blocks.peek().setPosition(new Point(width/2-2, 1));
+			touchCount = 0;
     	}
     	
     	this.paint(getGraphics());
@@ -254,6 +260,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		Point p = blocks.peek().getPosition();
 		
 		trimmedTile = blocks.peek().getTrimmedTile();
+
 		
 		int trimmedWidth = trimmedTile.size();
 		int trimmedHeight = trimmedTile.get(0).size();
@@ -276,83 +283,88 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				}
 			}
 		}
-	}
-	
-public boolean collides() {
 		
-		Point p1 = blocks.peek().getPosition();
-		
-		trimmedTile = blocks.peek().getTrimmedTile();
-		
-		for (Block b : oldBlocks) {
-			Point p2 = b.getPosition();
-			ArrayList<ArrayList<Integer>> bTrimmed = b.getTrimmedTile();
-			int[][] space = new int[height][width];
-			if (p1.y < p2.y) {
-				if (p1.x < p2.x) {
-					for (int r = 0; r < trimmedTile.size(); r++) {
-						for (int c = 0; c < trimmedTile.get(r).size(); c++) {
-							space[r][c] = 1;
-						}
-					}
-					for (int r = 0; r < bTrimmed.size(); r++) {
-						for (int c = 0; c < bTrimmed.get(r).size(); c++) {
-							space[r + (p2.y - p1.y)][c + (p2.x - p1.x)] = 2;
-						}
-					}
-				} else {
-					for (int r = 0; r < trimmedTile.size(); r++) {
-						for (int c = 0; c < trimmedTile.get(r).size(); c++) {
-							space[r][c + (p1.x - p2.x)] = 1;
-						}
-					}
-					for (int r = 0; r < bTrimmed.size(); r++) {
-						for (int c = 0; c < bTrimmed.get(r).size(); c++) {
-							space[r + (p2.y - p1.y)][c] = 2;
-						}
-					}
-				}
-			} else {
-				if (p1.x < p2.x) {
-					for (int r = 0; r < trimmedTile.size(); r++) {
-						for (int c = 0; c < trimmedTile.get(r).size(); c++) {
-							space[r + (p1.y - p2.y)][c] = 1;
-						}
-					}
-					for (int r = 0; r < bTrimmed.size(); r++) {
-						for (int c = 0; c < bTrimmed.get(r).size(); c++) {
-							space[r][c + (p2.x - p1.x)] = 2;
-						}
-					}
-				} else {
-					for (int r = 0; r < trimmedTile.size(); r++) {
-						for (int c = 0; c < trimmedTile.get(r).size(); c++) {
-							space[r + (p1.y - p2.y)][c + (p1.x - p2.x)] = 1;
-						}
-					}
-					for (int r = 0; r < bTrimmed.size(); r++) {
-						for (int c = 0; c < bTrimmed.get(r).size(); c++) {
-							space[r][c] = 2;
+		for (Block tile : oldBlocks) {
+			p = tile.getPosition();
+			trimmedTile = tile.getTrimmedTile();
+			trimmedWidth = trimmedTile.size();
+			trimmedHeight = trimmedTile.get(0).size();
+			if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
+				for (int y = p.y; y < p.y+trimmedWidth; y++) {
+					for (int x = p.x; x < p.x+trimmedHeight; x++) {
+						
+						if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
+							map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
 						}
 					}
 				}
 			}
-			for (int r = 0; r < space.length; r++) {
-				for (int c = 0; c < space[r].length; c++) {
-					if (space[r][c] != 0) {
-						if (r != 0 && space[r][c] != space[r - 1][c] && space[r - 1][c] != 0) {
-							return true;
-						}
-//						if (r != space.length - 1 && space[r][c] != space[r + 1][c] && space[r + 1][c] != 0) {
-//							return true;
-//						}
-//						if (c != 0 && space[r][c] != space[r][c - 1] && space[r][c - 1] != 0) {
-//							return true;
-//						}
-//						if (c != space[r].length - 1 && space[r][c] != space[r][c + 1] && space[r][c + 1] != 0) {
-//							return true;
-//						}
+		}
+	}
+	
+	public boolean collides() {
+		
+		ArrayList<ArrayList<Integer>> space = new ArrayList<ArrayList<Integer>>();
+		
+		for (int i = 0; i < height; i++) {
+			ArrayList<Integer> temp = new ArrayList<Integer>();
+			for (int j = 0; j < width; j++) {
+				temp.add(TileType.EMPTY);
+			}
+			space.add(temp);
+		}
+		
+		Point p = blocks.peek().getPosition();
+		
+		trimmedTile = blocks.peek().getTrimmedTile();
+		
+		int trimmedWidth = trimmedTile.size();
+		int trimmedHeight = trimmedTile.get(0).size();
+		
+		if ((p.y >= 0 && p.y < space.size()-trimmedWidth+1) && (p.x >= 0 && p.x < space.get(0).size()-trimmedHeight+1)) {
+			for (int y = p.y; y < p.y+trimmedWidth; y++) {
+				for (int x = p.x; x < p.x+trimmedHeight; x++) {
+					
+					if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
+						space.get(y).set(x, 2);
 					}
+				}
+			}
+		}
+		
+		for (Block tile : oldBlocks) {
+			p = tile.getPosition();
+			trimmedTile = tile.getTrimmedTile();
+			trimmedWidth = trimmedTile.size();
+			trimmedHeight = trimmedTile.get(0).size();
+			if ((p.y >= 0 && p.y < space.size()-trimmedWidth+1) && (p.x >= 0 && p.x < space.get(0).size()-trimmedHeight+1)) {
+				for (int y = p.y; y < p.y+trimmedWidth; y++) {
+					for (int x = p.x; x < p.x+trimmedHeight; x++) {
+						
+						if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
+							space.get(y).set(x, 1);
+						}
+					}
+				}
+			}
+		}
+		
+		trimmedTile = blocks.peek().getTrimmedTile();
+		for (int r = 0; r < space.size(); r++) {
+			for (int c = 0; c < space.get(r).size(); c++) {
+				if (space.get(r).get(c) != 0) {
+					if (r != space.size() - 1 && space.get(r).get(c) != space.get(r + 1).get(c) && space.get(r + 1).get(c) != 0) {
+						return true;
+					}
+//					if (r != space.length - 1 && space[r][c] != space[r + 1][c] && space[r + 1][c] != 0) {
+//						return true;
+//					}
+//					if (c != 0 && space[r][c] != space[r][c - 1] && space[r][c - 1] != 0) {
+//						return true;
+//					}
+//					if (c != space[r].length - 1 && space[r][c] != space[r][c + 1] && space[r][c + 1] != 0) {
+//						return true;
+//					}
 				}
 			}
 		}
