@@ -30,6 +30,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
 	private ArrayList<ArrayList<Integer>> map = new ArrayList<ArrayList<Integer>>(); 
 
+	
+	private ArrayList<ArrayList<Color>> colors = new ArrayList<ArrayList<Color>>(); 
+
 	private RenderMap renderer;
 	
 	//private DisplayBlock dispBlock;
@@ -46,7 +49,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 		super.paintComponent(g);
 			
-		renderer.paint(g);
+		renderer.paint(g, colors);
 		
 		Point curr = blocks.peek().getPosition();
 		trimmedTile = blocks.peek().getTrimmedTile();
@@ -222,16 +225,25 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
 	public void initMap() {
 		map.clear();
+		
 		ArrayList<Integer> temp = new ArrayList<Integer>();
+		ArrayList<Color> tempC = new ArrayList<Color>();
+		
+		
 		for (int i = 0; i < width; i++) {
 			temp.add(TileType.WALL);
+			tempC.add(new Color(0, 0, 0));
 		}
 		
 		map.add(temp);
 		
+		colors.add(tempC);
+		
+		
 		
 		for (int j = 1; j < height-1; j++) {
 			ArrayList<Integer> temp1 = new ArrayList<Integer>();
+			ArrayList<Color> temp2C = new ArrayList<Color>();
 			for (int i = 0; i < width; i++) {
 				if (i == 0) {
 					temp1.add(TileType.WALL);
@@ -240,18 +252,24 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				} else {
 					temp1.add(TileType.EMPTY);
 				}
+
+				temp2C.add(new Color(0, 0, 0));
 			}
 			
 			map.add(temp1);
+			colors.add(temp2C);
 		}
 		
 		
 		ArrayList<Integer> temp2 = new ArrayList<Integer>();
+		ArrayList<Color> temp3C = new ArrayList<Color>();
 		for (int i = 0; i < width; i++) {
 			temp2.add(TileType.WALL);
+			temp3C.add(new Color(0, 0, 0));
 		}
 		
 		map.add(temp2);
+		colors.add(temp3C);
 	
 	}
 	
@@ -279,6 +297,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					
 					if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
 						map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
+						
+						colors.get(y).set(x, blocks.peek().getColor());
+						
 					}
 				}
 			}
@@ -295,6 +316,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 						
 						if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
 							map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
+
+							colors.get(y).set(x, tile.getColor());
 						}
 					}
 				}
@@ -370,5 +393,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		}
 		return false;
 	}
+	
+
 
 }

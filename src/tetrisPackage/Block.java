@@ -1,5 +1,6 @@
 package tetrisPackage;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
 
@@ -7,6 +8,8 @@ public class Block {
 	private int[][] tile;
 	
 	private Point position;
+	
+	private Color color;
 	
 	public Block(int piece) {
 		if (piece == 1) { //Line block
@@ -52,6 +55,8 @@ public class Block {
 							 {0, 0, 0, 0} };
 			tile = temp;
 		}
+		
+		color = randomColor();
 	}
 	
 	public void rotate() {
@@ -121,5 +126,20 @@ public class Block {
 		}
 		
 		return trimmedTiles;
+	}
+	
+	private Color randomColor() {
+	    
+		ArrayList<Integer> randoms = new ArrayList<Integer>();
+		
+		for (int i = 0; i < 3; i++) {
+			randoms.add((int)(Math.random()*255.0) +0 );
+		}
+		
+		return new Color(randoms.get(0), randoms.get(1), randoms.get(2), 128);
+	}
+	
+	public Color getColor() {
+		return color;
 	}
 }

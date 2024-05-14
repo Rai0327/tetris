@@ -57,7 +57,7 @@ public class RenderMap {
 		
 	}
 	
-	public void paintShape() {
+	public void paintShape(ArrayList<ArrayList<Color>> colors) {
 
 	    Graphics2D g2 = bufferedImage.createGraphics();
 		
@@ -70,7 +70,7 @@ public class RenderMap {
 					
 					BufferedImage buffer;
 					if (tile == 2) {
-						buffer = changeColor(image.get(tile), c);
+						buffer = changeColor(image.get(tile), colors.get(y).get(x));
 					} else {
 						buffer = image.get(tile);
 					}
@@ -89,12 +89,12 @@ public class RenderMap {
 	    initialDraw = false;
 	}
 	
-	public void paint(Graphics g) {
+	public void paint(Graphics g, ArrayList<ArrayList<Color>> colors) {
 		Graphics2D g2 = (Graphics2D)g;
 		
 	    if (bufferedImage != null) {
 
-		    paintShape();
+		    paintShape(colors);
 	        g2.drawImage(bufferedImage, 0, 0, null);
 	     }
 				
@@ -105,8 +105,7 @@ public class RenderMap {
 		BufferedImage newImage = deepCopyImage(image);
 				
 		Graphics2D g2d = newImage.createGraphics();
-		Color darkOliveGreen = new Color(color.getRed(), color.getGreen(), color.getBlue(), 128);
-		g2d.setColor(darkOliveGreen);
+		g2d.setColor(color);
 		g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
 		
 		return newImage;
