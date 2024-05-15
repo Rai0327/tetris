@@ -78,8 +78,10 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				blocks.peek().setPosition(curr);
 			}
 			
-			updateBlockOnMap();
 		}
+		
+
+		updateBlockOnMap();
 	}
 	
 	public static void main(String[] arg) {
@@ -97,7 +99,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			trimmedTile = blocks.peek().getTrimmedTile();
 			updateBlockOnMap();
 			renderer = new RenderMap(new Point(0,0), 30, map);
-			renderer.randomizeBlockColor();
 		} catch (IOException e) {
 
 		      System.out.println("Something went wrong.");
@@ -122,7 +123,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
     @Override
     public void keyPressed(KeyEvent e) {
-    	
 
 		trimmedTile = blocks.peek().getTrimmedTile();
 
@@ -132,19 +132,19 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
     		blocks.peek().rotate();
     		
-    		updateBlockOnMap();
+    		//updateBlockOnMap();
     		
     		while (current.x >= map.get(0).size() - trimmedTile.get(0).size()) {
-    			current.x--;
+    			current.x -= 1;
     			blocks.peek().setPosition(current);
     		}
     		
     		while (current.y >= map.size()-trimmedTile.size()) {
-    			current.y--;
+    			current.y -= 1;
     			blocks.peek().setPosition(current);
     		}
     		
-    		updateBlockOnMap();
+    		//updateBlockOnMap();
     		
     	}
     	if (e.getKeyCode() == 68 || e.getKeyCode() == 39) {
@@ -155,7 +155,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
     		
     		blocks.peek().setPosition(current);
 
-    		updateBlockOnMap();
+    		//updateBlockOnMap();
     		}
     		
     	}
@@ -167,7 +167,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
     		
     		blocks.peek().setPosition(current);
 
-    		updateBlockOnMap();
+    		//updateBlockOnMap();
     		}
     	}
     	if ((e.getKeyCode() == 83 || e.getKeyCode() == 40) && !collides()) {
@@ -180,7 +180,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
     		
     		blocks.peek().setPosition(current);
 
-    		updateBlockOnMap();
+    		//updateBlockOnMap();
     		}
     	}
     	
@@ -201,7 +201,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			touchCount = 0;
     	}
     	
-    	this.paint(getGraphics());
     }
 
 	@Override

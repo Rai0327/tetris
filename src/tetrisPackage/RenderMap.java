@@ -34,8 +34,6 @@ public class RenderMap {
 	
 	private BufferedImage bufferedImage;
 	
-	private Color c = new Color(0, 0, 0);
-	
 	public RenderMap(Point startPos, int rectWidth, ArrayList<ArrayList<Integer>> map) throws IOException {
 		
 		sX = startPos.x;
@@ -66,7 +64,7 @@ public class RenderMap {
 				
 				Integer tile = map.get(y).get(x);
 				
-				if ((oldMap.get(y).get(x) != (map.get(y).get(x))) | initialDraw | tile == 2) {
+				if ((oldMap.get(y).get(x) != (map.get(y).get(x))) | initialDraw | tile == TileType.BLOCK) {
 					
 					BufferedImage buffer;
 					if (tile == 2) {
@@ -121,16 +119,6 @@ public class RenderMap {
 		 return new BufferedImage(model, raster, isAlphaPremultiplied, null);
 	}
 	
-	public void randomizeBlockColor() {
-	    
-		ArrayList<Integer> randoms = new ArrayList<Integer>();
-		
-		for (int i = 0; i < 3; i++) {
-			randoms.add((int)(Math.random()*255.0) +0 );
-		}
-		
-		c = new Color(randoms.get(0), randoms.get(1), randoms.get(2));
-	}
 	
 	
 	
