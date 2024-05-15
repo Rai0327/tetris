@@ -80,6 +80,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			
 		}
 		
+		
 
 		updateBlockOnMap();
 	}
@@ -129,10 +130,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		Point current = blocks.peek().getPosition();
 		
     	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
-
-    		blocks.peek().rotate();
     		
-    		//updateBlockOnMap();
     		
     		while (current.x >= map.get(0).size() - trimmedTile.get(0).size()) {
     			current.x -= 1;
@@ -144,7 +142,12 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
     			blocks.peek().setPosition(current);
     		}
     		
-    		//updateBlockOnMap();
+    		System.out.println("Distance from wall: " + (map.get(0).size()-current.x));
+    		System.out.println("Tile: " + trimmedTile.size());
+    		
+    		if (map.get(0).size()-current.x > trimmedTile.size()) {
+    			blocks.peek().rotate();
+    		}
     		
     	}
     	if (e.getKeyCode() == 68 || e.getKeyCode() == 39) {
@@ -155,7 +158,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
     		
     		blocks.peek().setPosition(current);
 
-    		//updateBlockOnMap();
     		}
     		
     	}
@@ -282,12 +284,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		int trimmedWidth = trimmedTile.size();
 		int trimmedHeight = trimmedTile.get(0).size();
 		
-		System.out.println("TrimW" + trimmedWidth);
-
-		System.out.println("TrimH" + trimmedHeight);
-		
-		System.out.println(trimmedTile);
-		
 		initMap();
 		
 		if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
@@ -314,8 +310,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					for (int x = p.x; x < p.x+trimmedHeight; x++) {
 						
 						if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
+							
 							map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
-
 							colors.get(y).set(x, tile.getColor());
 						}
 					}
@@ -378,15 +374,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					if (r != space.size() - 1 && space.get(r).get(c) != space.get(r + 1).get(c) && space.get(r + 1).get(c) != 0) {
 						return true;
 					}
-//					if (r != space.length - 1 && space[r][c] != space[r + 1][c] && space[r + 1][c] != 0) {
-//						return true;
-//					}
-//					if (c != 0 && space[r][c] != space[r][c - 1] && space[r][c - 1] != 0) {
-//						return true;
-//					}
-//					if (c != space[r].length - 1 && space[r][c] != space[r][c + 1] && space[r][c + 1] != 0) {
-//						return true;
-//					}
 				}
 			}
 		}
