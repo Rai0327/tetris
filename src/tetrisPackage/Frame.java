@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -16,8 +18,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.Timer;
 
 public class Frame extends JPanel implements KeyListener, ActionListener {
@@ -43,6 +48,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	private int touchCount = 0;
 	
 	private int level = 29;
+	
+	private int score = 0;
 	
 
 	public void paint(Graphics g) {
@@ -70,6 +77,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		//implement gravity
 		if (count % level == 0 && !checkBottomCollision()) { // TODO - Bottom collision
 			curr.y++;
+			score++;
 			
 			blocks.peek().setPosition(curr);
 			
@@ -89,6 +97,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		Frame f = new Frame();
 	}
 	
+	JFrame frame;
+	Store store;
 	public Frame() {
 		
 		initMap();
@@ -105,7 +115,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		      System.out.println("Something went wrong.");
 		}
 		
-		JFrame frame = new JFrame("Tetris Game");
+		frame = new JFrame("Tetris Game");
 		frame.setSize(new Dimension(900, 900));
 		frame.setBackground(Color.blue);
 		frame.addKeyListener(this);
@@ -120,33 +130,36 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		
+		store = new Store();		
 	}
 	
     @Override
     public void keyPressed(KeyEvent e) {
-    	
 		trimmedTile = blocks.peek().getTrimmedTile();
 
 		Point current = blocks.peek().getPosition();
 		
-    	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
+    	if ((e.getKeyCode() == 87 || e.getKeyCode() == 38)) {
     		
+    		if (!checkCollisionsForRotation()) {
     		
-    		while (current.x >= map.get(0).size() - trimmedTile.get(0).size()) {
-    			current.x -= 1;
-    			blocks.peek().setPosition(current);
-    		}
+	    		while (current.x >= map.get(0).size() - trimmedTile.get(0).size()) {
+	    			current.x -= 1;
+	    			blocks.peek().setPosition(current);
+	    		}
+	    		
+	    		while (current.y >= map.size()-trimmedTile.size()) {
+	    			current.y -= 1;
+	    			blocks.peek().setPosition(current);
+	    		}
+	    		
+	    		System.out.println("Distance from wall: " + (map.get(0).size()-current.x));
+	    		System.out.println("Tile: " + trimmedTile.size());
+	    		
+	    		if (map.get(0).size()-current.x > trimmedTile.size()) {
+	    			blocks.peek().rotate();
+	    		}
     		
-    		while (current.y >= map.size()-trimmedTile.size()) {
-    			current.y -= 1;
-    			blocks.peek().setPosition(current);
-    		}
-    		
-    		System.out.println("Distance from wall: " + (map.get(0).size()-current.x));
-    		System.out.println("Tile: " + trimmedTile.size());
-    		
-    		if (map.get(0).size()-current.x > trimmedTile.size()) {
-    			blocks.peek().rotate();
     		}
     		
     	}
@@ -269,49 +282,89 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	}
 	
 	public void updateBlockOnMap() {
-		
-		Point p = blocks.peek().getPosition();
-		
-		trimmedTile = blocks.peek().getTrimmedTile();
-
-		
-		int trimmedWidth = trimmedTile.size();
-		int trimmedHeight = trimmedTile.get(0).size();
-		
-		initMap();
-		
-		if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
-			for (int y = p.y; y < p.y+trimmedWidth; y++) {
-				for (int x = p.x; x < p.x+trimmedHeight; x++) {
-					
-					if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
-						map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
-						
-						colors.get(y).set(x, blocks.peek().getColor());
-						
-					}
-				}
-			}
-		}
-		
-		for (Block tile : oldBlocks) {
-			p = tile.getPosition();
-			trimmedTile = tile.getTrimmedTile();
-			trimmedWidth = trimmedTile.size();
-			trimmedHeight = trimmedTile.get(0).size();
+		if (!isDead) {
+			Point p = blocks.peek().getPosition();
+			
+			trimmedTile = blocks.peek().getTrimmedTile();
+	
+			
+			int trimmedWidth = trimmedTile.size();
+			int trimmedHeight = trimmedTile.get(0).size();
+			
+			initMap();
+			
 			if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
 				for (int y = p.y; y < p.y+trimmedWidth; y++) {
 					for (int x = p.x; x < p.x+trimmedHeight; x++) {
 						
 						if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
-							
 							map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
-							colors.get(y).set(x, tile.getColor());
+							
+							colors.get(y).set(x, blocks.peek().getColor());
+							
+						}
+					}
+				}
+			}
+			
+			for (Block tile : oldBlocks) {
+				p = tile.getPosition();
+
+				if (p.y == 1) {
+					death();
+				}
+	
+				trimmedTile = tile.getTrimmedTile();
+				trimmedWidth = trimmedTile.size();
+				trimmedHeight = trimmedTile.get(0).size();
+				if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
+					for (int y = p.y; y < p.y+trimmedWidth; y++) {
+						for (int x = p.x; x < p.x+trimmedHeight; x++) {
+							
+							if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
+								
+								map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
+								colors.get(y).set(x, tile.getColor());
+							}
 						}
 					}
 				}
 			}
 		}
+	}
+	
+
+	boolean isDead = false;
+	public void death() { // death logic
+		isDead = true;
+		System.out.println("Score: " + score);
+		// Creating the main window of our application
+		final JFrame frame = new JFrame();
+
+		// Release the window and quit the application when it has been closed
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+		// Creating a button and setting its action
+		final JButton clickMeButton = new JButton("Your score is: " + score + ".Save score?");
+		clickMeButton.addActionListener(new ActionListener() {
+
+		    public void actionPerformed(ActionEvent e) {
+		        // Ask for the user name and say hello
+		        String name = JOptionPane.showInputDialog("What is your name?");
+		    }
+		});
+		
+		frame.setLayout( new GridBagLayout() );
+		frame.add(clickMeButton, new GridBagConstraints());
+
+		// Add the button to the window and resize it to fit the button
+		frame.pack();
+
+		// Displaying the window
+		frame.setVisible(true);    
+
+//        JOptionPane.showMessageDialog(null, "You Died! Your score: " + score ,"Tetris", JOptionPane.ERROR_MESSAGE);
+//		System.exit(-1);
 	}
 	
 	public boolean checkLeftCollision() {
@@ -335,6 +388,31 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		return false;
 	}
 	
+	public boolean checkTopCollision() {
+		if (checkAllCollisions().get(3).equals("top")) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean checkCollisionsForRotation() {
+		
+		Block backup = blocks.peek();
+		
+		blocks.peek().rotate();
+		
+		System.out.println(blocks.peek().getTrimmedTile());
+		
+		boolean decision = checkLeftCollision() | checkRightCollision() | checkBottomCollision();
+		
+		
+		
+		blocks.remove(blocks.peek());
+		blocks.add(backup);
+		
+		return decision;
+	}
+	
 	
 	public ArrayList<String> checkAllCollisions() {
 		Point p = blocks.peek().getPosition();
@@ -342,14 +420,16 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		trimmedTile = blocks.peek().getTrimmedTile();
 		
 		ArrayList<Point> leftCandidates = new ArrayList<Point>();
-
 		
 		ArrayList<Point> rightCandidates = new ArrayList<Point>();
 		
 		ArrayList<Point> bottomCandidates = new ArrayList<Point>();
 		
+		ArrayList<Point> topCandidates = new ArrayList<Point>();
+		
 		ArrayList<String> restrictions = new ArrayList<String>();
 		
+		restrictions.add("");
 		restrictions.add("");
 		restrictions.add("");
 		restrictions.add("");
@@ -357,49 +437,107 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		// Add candidates from left
 		for (int r = 0; r < trimmedTile.size(); r++) {
 			for (int c = 0; c < trimmedTile.get(r).size(); c++) {
+
+				int x = p.x+c-1;
+				int y = p.y+r;
+				
+				
+				if (0 <= y && x < height) {
+					if (0 <= y  && x < width) {
 				if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-					leftCandidates.add(new Point(p.x+c-1, p.y+r));
+					leftCandidates.add(new Point(x, y));
 					break;
 				}
+					}}
 			}
 		}
 		
 		// Add candidates from right
 		for (int r = trimmedTile.size()-1; r >= 0; r--) {
 			for (int c = trimmedTile.get(r).size()-1; c >= 0; c--) {
+				
+				int x = p.x+c+1;
+				int y = p.y+r;
+				
+				if (0 <= y && x < height) {
+					if (0 <= y  && x < width) {
+				
 				if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
 					rightCandidates.add(new Point(p.x+c+1, p.y+r));
 					break;
 				}
+				
+					}}
 			}
 		}
 		
 		// Add candidates from bottom
 		for (int c = trimmedTile.get(0).size()-1; c >= 0; c--) {
 			for (int r = trimmedTile.size()-1; r >= 0; r--) {
+				
+				int x = p.x+c;
+				int y = p.y+r+1;
+				if (0 <= y && x < height) {
+					if (0 <= y  && x < width) {
 				if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-					bottomCandidates.add(new Point(p.x+c, p.y+r+1));
+					bottomCandidates.add(new Point(x, y));
 					break;
-				}
+				}}}
+			}
+		}
+		
+		// Add candidates from top
+		for (int c = 0; c < trimmedTile.get(0).size(); c++) {
+			for (int r = 0; r < trimmedTile.size(); r++) {
+				int x = p.x+c;
+				int y = p.y+r-1;
+
+				if (0 <= y && x < height) {
+					if (0 <= y  && x < width) {
+				if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+					topCandidates.add(new Point(x, y));
+					break;
+				}}}
 			}
 		}
 		
 		
 		for (Point point : leftCandidates) {
-			if (map.get(point.y).get(point.x) == TileType.BLOCK) {
-				restrictions.set(0, "left");
+			if (0 <= point.y && point.y < height) {
+				if (0 <= point.x && point.x < width) {
+					if (map.get(point.y).get(point.x) == TileType.BLOCK | map.get(point.y).get(point.x) == TileType.WALL) {
+						restrictions.set(0, "left");
+					}
+				}
 			}
 		}
 		
 		for (Point point : rightCandidates) {
-			if (map.get(point.y).get(point.x) == TileType.BLOCK) {
+
+			if (0 <= point.y && point.y < height) {
+				if (0 <= point.x && point.x < width) {
+			if (map.get(point.y).get(point.x) == TileType.BLOCK | map.get(point.y).get(point.x) == TileType.WALL) {
 				restrictions.set(1, "right");
-			}
+			}}}
 		}
+		
 		for (Point point : bottomCandidates) {
+
+			if (0 <= point.y && point.y < height) {
+				if (0 <= point.x && point.x < width) {
 			if (map.get(point.y).get(point.x) == TileType.BLOCK | map.get(point.y).get(point.x) == TileType.WALL) {
 				restrictions.set(2, "bottom");
-			}
+			}}}
+		}
+		
+
+		for (Point point : topCandidates) {
+
+			if (0 <= point.y && point.y < height) {
+				if (0 <= point.x && point.x < width) {
+			if (map.get(point.y).get(point.x) == TileType.BLOCK | map.get(point.y).get(point.x) == TileType.WALL) {
+				restrictions.set(3, "top");
+			}}}
 		}
 		
 		return restrictions;
