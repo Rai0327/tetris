@@ -53,44 +53,44 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
 
 	public void paint(Graphics g) {
-
 		super.paintComponent(g);
-			
+		
 		renderer.paint(g, colors);
 		
-		Point curr = blocks.peek().getPosition();
-		trimmedTile = blocks.peek().getTrimmedTile();
-		
-		count++;
-		
-		if (curr.y >= map.size()-trimmedTile.size()-1 || collides()) {
-			touchCount++;
-			if (touchCount == 30) {
-				oldBlocks.add(blocks.peek());
-				blocks.remove();
-				blocks.add(new Block((int) (Math.random() * 7) + 1));
-				blocks.peek().setPosition(new Point(width/2-2, 1));
-				touchCount = 0;
+		if (!isDead) {
+				
+			Point curr = blocks.peek().getPosition();
+			trimmedTile = blocks.peek().getTrimmedTile();
+			
+			count++;
+			
+			if (curr.y >= map.size()-trimmedTile.size()-1 || collides()) {
+				touchCount++;
+				if (touchCount == 30) {
+					oldBlocks.add(blocks.peek());
+					blocks.remove();
+					blocks.add(new Block((int) (Math.random() * 7) + 1));
+					blocks.peek().setPosition(new Point(width/2-2, 1));
+					touchCount = 0;
+				}
 			}
-		}
-		
-		//implement gravity
-		if (count % level == 0 && !collides()) {
-			curr.y++;
-			score++;
 			
-			blocks.peek().setPosition(curr);
-			
-			while (curr.y >= map.size()-trimmedTile.size()) {
-				curr.y--;
+			//implement gravity
+			if (count % level == 0 && !collides()) {
+				curr.y++;
+				score++;
+				
 				blocks.peek().setPosition(curr);
+				
+				while (curr.y >= map.size()-trimmedTile.size()) {
+					curr.y--;
+					blocks.peek().setPosition(curr);
+				}
+				
 			}
 			
+			updateBlockOnMap();
 		}
-		
-		
-
-		updateBlockOnMap();
 	}
 	
 	public static void main(String[] arg) {
@@ -135,82 +135,84 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
     @Override
     public void keyPressed(KeyEvent e) {
-		trimmedTile = blocks.peek().getTrimmedTile();
-
-		Point current = blocks.peek().getPosition();
-		
-    	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
-    		
-    		
-    		while (current.x >= map.get(0).size() - trimmedTile.get(0).size()) {
-    			current.x -= 1;
-    			blocks.peek().setPosition(current);
-    		}
-    		
-    		while (current.y >= map.size()-trimmedTile.size()) {
-    			current.y -= 1;
-    			blocks.peek().setPosition(current);
-    		}
-    		
-    		System.out.println("Distance from wall: " + (map.get(0).size()-current.x));
-    		System.out.println("Tile: " + trimmedTile.size());
-    		
-    		if (map.get(0).size()-current.x > trimmedTile.size()) {
-    			blocks.peek().rotate();
-    		}
-    		
-    	}
-    	if (e.getKeyCode() == 68 || e.getKeyCode() == 39) {
-    		
-    		if (current.x < map.get(0).size()-trimmedTile.get(0).size()-1) {
-    		
-    		current.x += 1;
-    		
-    		blocks.peek().setPosition(current);
-
-    		}
-    		
-    	}
-    	if (e.getKeyCode() == 65 || e.getKeyCode() == 37) {
-    		
-    		if (current.x > 1) {
-    		
-    		current.x -= 1;
-    		
-    		blocks.peek().setPosition(current);
-
-    		//updateBlockOnMap();
-    		}
-    	}
-    	if ((e.getKeyCode() == 83 || e.getKeyCode() == 40) && !collides()) {
-
-    		
-    		if (current.y < map.size()-trimmedTile.size()-1) {
-    		
-    		
-    		current.y += 1;
-    		
-    		blocks.peek().setPosition(current);
-
-    		//updateBlockOnMap();
-    		}
-    	}
-    	
-    	if (e.getKeyCode() == 32) {
-    		//adjust when implementing switching blocks
-    		while (current.y < map.size()-trimmedTile.size()-1 && !collides()) {
-    			current.y++;
-    		}
-    		
-    		blocks.peek().setPosition(current);
-    		
-    		updateBlockOnMap();
-    		
-    		oldBlocks.add(blocks.peek());
-			blocks.remove();
-			blocks.add(new Block((int) (Math.random() * 7) + 1));
-			blocks.peek().setPosition(new Point(width/2-2, 1));
-			touchCount = 0;
+    	if (!isDead) {
+			trimmedTile = blocks.peek().getTrimmedTile();
+	
+			Point current = blocks.peek().getPosition();
+			
+	    	if (e.getKeyCode() == 87 || e.getKeyCode() == 38) {
+	    		
+	    		
+	    		while (current.x >= map.get(0).size() - trimmedTile.get(0).size()) {
+	    			current.x -= 1;
+	    			blocks.peek().setPosition(current);
+	    		}
+	    		
+	    		while (current.y >= map.size()-trimmedTile.size()) {
+	    			current.y -= 1;
+	    			blocks.peek().setPosition(current);
+	    		}
+	    		
+	    		System.out.println("Distance from wall: " + (map.get(0).size()-current.x));
+	    		System.out.println("Tile: " + trimmedTile.size());
+	    		
+	    		if (map.get(0).size()-current.x > trimmedTile.size()) {
+	    			blocks.peek().rotate();
+	    		}
+	    		
+	    	}
+	    	if (e.getKeyCode() == 68 || e.getKeyCode() == 39) {
+	    		
+	    		if (current.x < map.get(0).size()-trimmedTile.get(0).size()-1) {
+	    		
+	    		current.x += 1;
+	    		
+	    		blocks.peek().setPosition(current);
+	
+	    		}
+	    		
+	    	}
+	    	if (e.getKeyCode() == 65 || e.getKeyCode() == 37) {
+	    		
+	    		if (current.x > 1) {
+	    		
+	    		current.x -= 1;
+	    		
+	    		blocks.peek().setPosition(current);
+	
+	    		//updateBlockOnMap();
+	    		}
+	    	}
+	    	if ((e.getKeyCode() == 83 || e.getKeyCode() == 40) && !collides()) {
+	
+	    		
+	    		if (current.y < map.size()-trimmedTile.size()-1) {
+	    		
+	    		
+	    		current.y += 1;
+	    		
+	    		blocks.peek().setPosition(current);
+	
+	    		//updateBlockOnMap();
+	    		}
+	    	}
+	    	
+	    	if (e.getKeyCode() == 32) {
+	    		//adjust when implementing switching blocks
+	    		while (current.y < map.size()-trimmedTile.size()-1 && !collides()) {
+	    			current.y++;
+	    		}
+	    		
+	    		blocks.peek().setPosition(current);
+	    		
+	    		updateBlockOnMap();
+	    		
+	    		oldBlocks.add(blocks.peek());
+				blocks.remove();
+				blocks.add(new Block((int) (Math.random() * 7) + 1));
+				blocks.peek().setPosition(new Point(width/2-2, 1));
+				touchCount = 0;
+	    	}
     	}
     	
     }
@@ -341,32 +343,21 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		isDead = true;
 		System.out.println("Score: " + score);
 		// Creating the main window of our application
-		final JFrame frame = new JFrame();
+		frame = new JFrame();
 
 		// Release the window and quit the application when it has been closed
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		// Creating a button and setting its action
-		final JButton clickMeButton = new JButton("Your score is: " + score + ".Save score?");
-		clickMeButton.addActionListener(new ActionListener() {
+        String name = JOptionPane.showInputDialog(null, "You Died! Your score is: " + score + ". \nPlease enter your name to save your score.","Tetris", JOptionPane.PLAIN_MESSAGE);
+        store.addScore(score, name);
+        
+        Score highest = store.getHighestScore();
+        Score lowest = store.getLowestScore();
 
-		    public void actionPerformed(ActionEvent e) {
-		        // Ask for the user name and say hello
-		        String name = JOptionPane.showInputDialog("What is your name?");
-		    }
-		});
-		
-		frame.setLayout( new GridBagLayout() );
-		frame.add(clickMeButton, new GridBagConstraints());
+        JOptionPane.showMessageDialog(null, "Your score has been saved. The highest score is " + highest.getName() + " with a score of " + highest.getScore() + "! The lowest score is " + lowest.getName() + " with a score of " + lowest.getScore() + "!", "Tetris", JOptionPane.INFORMATION_MESSAGE);
 
-		// Add the button to the window and resize it to fit the button
-		frame.pack();
-
-		// Displaying the window
-		frame.setVisible(true);    
-
-//        JOptionPane.showMessageDialog(null, "You Died! Your score: " + score ,"Tetris", JOptionPane.ERROR_MESSAGE);
-//		System.exit(-1);
+		System.exit(-1);
 	}
 	
 	public boolean collides() {
