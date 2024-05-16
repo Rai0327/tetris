@@ -43,13 +43,14 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	private int level = 29;
 
 	private int score = 0;
+	
 
 	@Override
 	public void paint(Graphics g) {
 		super.paintComponent(g);
-
-		renderer.paint(g, colors);
-
+		
+			renderer.paint(g, colors);
+	
 		if (!isDead) {
 
 			Point curr = blocks.peek().getPosition();
@@ -137,7 +138,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 			if ((e.getKeyCode() == 87 || e.getKeyCode() == 38)) {
 
-				if (!checkRightCollision()) {
+				if (!checkCollisionsForRotation()) {
 
 					while (current.x >= map.get(0).size() - trimmedTile.get(0).size()) {
 						current.x -= 1;
@@ -383,19 +384,27 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	}
 
 	public boolean checkCollisionsForRotation() {
-
-		Block backup = blocks.peek();
-
+		
+		Block b = blocks.peek();
+		
 		blocks.peek().rotate();
+		
+		boolean res = checkTopCollision();
+		
+		System.out.println(res);
 
-		System.out.println(blocks.peek().getTrimmedTile());
 
-		boolean decision = checkLeftCollision() | checkRightCollision() | checkBottomCollision();
+		for (int i = 0; i < 2; i++) {
 
-		blocks.remove(blocks.peek());
-		blocks.add(backup);
-
-		return decision;
+			blocks.peek().rotate();
+		}
+		
+		///		blocks.remove();
+			//	blocks.add(b);
+			
+				
+				return res;
+		
 	}
 
 	public ArrayList<String> checkAllCollisions() {
