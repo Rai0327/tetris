@@ -22,8 +22,9 @@ public class Store {
 	
 	public void addScore(double score, String name) {
 		try {
-			FileWriter fileWriter = new FileWriter(fileName);
-		    PrintWriter printWriter = new PrintWriter(fileWriter);
+			FileWriter fileWriter = new FileWriter(fileName, true);
+		    PrintWriter printWriter = new PrintWriter(fileWriter, true);
+		    printWriter.println();
 		    printWriter.print(score + " " + name);
 		    printWriter.close();
 		} catch (IOException e) {
