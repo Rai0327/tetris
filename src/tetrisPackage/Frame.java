@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -16,8 +18,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.Timer;
 
 public class Frame extends JPanel implements KeyListener, ActionListener {
@@ -43,6 +48,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	private int touchCount = 0;
 	
 	private int level = 29;
+	
+	private int score = 0;
 	
 
 	public void paint(Graphics g) {
@@ -70,6 +77,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		//implement gravity
 		if (count % level == 0 && !collides()) {
 			curr.y++;
+			score++;
 			
 			blocks.peek().setPosition(curr);
 			
@@ -89,6 +97,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		Frame f = new Frame();
 	}
 	
+	JFrame frame;
+	Store store;
 	public Frame() {
 		
 		initMap();
@@ -105,7 +115,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		      System.out.println("Something went wrong.");
 		}
 		
-		JFrame frame = new JFrame("Tetris Game");
+		frame = new JFrame("Tetris Game");
 		frame.setSize(new Dimension(900, 900));
 		frame.setBackground(Color.blue);
 		frame.addKeyListener(this);
@@ -120,11 +130,11 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		
+		store = new Store();		
 	}
 	
     @Override
     public void keyPressed(KeyEvent e) {
-
 		trimmedTile = blocks.peek().getTrimmedTile();
 
 		Point current = blocks.peek().getPosition();
@@ -275,49 +285,88 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	}
 	
 	public void updateBlockOnMap() {
-		
-		Point p = blocks.peek().getPosition();
-		
-		trimmedTile = blocks.peek().getTrimmedTile();
-
-		
-		int trimmedWidth = trimmedTile.size();
-		int trimmedHeight = trimmedTile.get(0).size();
-		
-		initMap();
-		
-		if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
-			for (int y = p.y; y < p.y+trimmedWidth; y++) {
-				for (int x = p.x; x < p.x+trimmedHeight; x++) {
-					
-					if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
-						map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
-						
-						colors.get(y).set(x, blocks.peek().getColor());
-						
-					}
-				}
-			}
-		}
-		
-		for (Block tile : oldBlocks) {
-			p = tile.getPosition();
-			trimmedTile = tile.getTrimmedTile();
-			trimmedWidth = trimmedTile.size();
-			trimmedHeight = trimmedTile.get(0).size();
+		if (!isDead) {
+			Point p = blocks.peek().getPosition();
+			
+			trimmedTile = blocks.peek().getTrimmedTile();
+	
+			
+			int trimmedWidth = trimmedTile.size();
+			int trimmedHeight = trimmedTile.get(0).size();
+			
+			initMap();
+			
 			if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
 				for (int y = p.y; y < p.y+trimmedWidth; y++) {
 					for (int x = p.x; x < p.x+trimmedHeight; x++) {
 						
 						if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
-							
 							map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
-							colors.get(y).set(x, tile.getColor());
+							
+							colors.get(y).set(x, blocks.peek().getColor());
+							
+						}
+					}
+				}
+			}
+			
+			for (Block tile : oldBlocks) {
+				p = tile.getPosition();
+
+				if (p.y == 1) {
+					death();
+				}
+	
+				trimmedTile = tile.getTrimmedTile();
+				trimmedWidth = trimmedTile.size();
+				trimmedHeight = trimmedTile.get(0).size();
+				if ((p.y >= 0 && p.y < map.size()-trimmedWidth+1) && (p.x >= 0 && p.x < map.get(0).size()-trimmedHeight+1)) {
+					for (int y = p.y; y < p.y+trimmedWidth; y++) {
+						for (int x = p.x; x < p.x+trimmedHeight; x++) {
+							
+							if (trimmedTile.get(y-p.y).get(x-p.x) != 0) {
+								
+								map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
+								colors.get(y).set(x, tile.getColor());
+							}
 						}
 					}
 				}
 			}
 		}
+	}
+	
+	boolean isDead = false;
+	public void death() { // death logic
+		isDead = true;
+		System.out.println("Score: " + score);
+		// Creating the main window of our application
+		final JFrame frame = new JFrame();
+
+		// Release the window and quit the application when it has been closed
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+		// Creating a button and setting its action
+		final JButton clickMeButton = new JButton("Your score is: " + score + ".Save score?");
+		clickMeButton.addActionListener(new ActionListener() {
+
+		    public void actionPerformed(ActionEvent e) {
+		        // Ask for the user name and say hello
+		        String name = JOptionPane.showInputDialog("What is your name?");
+		    }
+		});
+		
+		frame.setLayout( new GridBagLayout() );
+		frame.add(clickMeButton, new GridBagConstraints());
+
+		// Add the button to the window and resize it to fit the button
+		frame.pack();
+
+		// Displaying the window
+		frame.setVisible(true);    
+
+//        JOptionPane.showMessageDialog(null, "You Died! Your score: " + score ,"Tetris", JOptionPane.ERROR_MESSAGE);
+//		System.exit(-1);
 	}
 	
 	public boolean collides() {
