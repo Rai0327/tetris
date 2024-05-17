@@ -71,7 +71,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			}
 
 			// implement gravity
-			if (count % level == 0 && !checkBottomCollision()) { // TODO - Bottom collision
+			if (count % level == 0 && !checkBottomCollision()) {
 				curr.y++;
 				score++;
 
@@ -385,24 +385,19 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	public boolean checkCollisionsForRotation() {
 		
-		Block b = blocks.peek();
-		
 		blocks.peek().rotate();
 		
-		boolean res = checkTopCollision();
+		updateBlockOnMap();
 		
-		System.out.println(res);
-
-
-		for (int i = 0; i < 2; i++) {
-
+		boolean res = checkTopCollision() | checkBottomCollision();
+		
+		for (int i = 0; i < 3; i++) {
 			blocks.peek().rotate();
 		}
 		
-		///		blocks.remove();
-			//	blocks.add(b);
-			
-				
+		updateBlockOnMap();
+		
+		
 				return res;
 		
 	}
