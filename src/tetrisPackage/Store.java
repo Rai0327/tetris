@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Store {
@@ -37,6 +38,8 @@ public class Store {
 		try {
 		    File file = new File(fileName);
 		    Scanner scanner = new Scanner(file);
+		    
+		    scanner.useLocale(Locale.US);
 		    
 			ArrayList<Score> scores = new ArrayList<Score>();
 		    
