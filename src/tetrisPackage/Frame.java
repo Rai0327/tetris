@@ -349,7 +349,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		String name = JOptionPane.showInputDialog(null,
 				"You Died! Your score is: " + score + ". \nPlease enter your name to save your score.", "Tetris",
 				JOptionPane.PLAIN_MESSAGE);
-		name.replaceAll("\\s+","");
+		name = name.replaceAll("\\s+","");
 		store.addScore(score, name);
 
 		Score highest = store.getHighestScore();
