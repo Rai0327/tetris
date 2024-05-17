@@ -90,6 +90,25 @@ public class Block {
 		this.tile = tile;
 	}
 	
+	public void removeRow(int r) {
+			boolean isRowNotZero = false;
+			
+			for (int c = tile[0].length-1; c >= 0; c--) {
+				if (tile[r][c] != 0) {
+					isRowNotZero = true;
+					break;
+				}
+			}
+			
+			if (isRowNotZero) {
+				for (int c = 0; c < tile[0].length; c++) {
+					tile[r][c] = 0;
+				}
+				
+			}
+		
+	}
+	
 	public ArrayList<ArrayList<Integer>> getTrimmedTile() {
 		ArrayList<ArrayList<Integer>> trimmedTiles = new ArrayList<ArrayList<Integer>>();
 		
@@ -141,5 +160,19 @@ public class Block {
 	
 	public Color getColor() {
 		return color;
+	}
+	
+	public boolean isEmpty() {
+		boolean isNotEmpty = false;
+		for (int r = 0; r < tile.length; r++) {
+			for (int c = 0; c < tile[0].length; c++) {
+				if (tile[r][c] != 0) {
+					isNotEmpty = true;
+					break;
+				}
+			}
+		}
+		
+		return !isNotEmpty;
 	}
 }

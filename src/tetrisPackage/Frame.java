@@ -11,6 +11,7 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import javax.swing.JFrame;
@@ -193,6 +194,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			}
 
 			if (e.getKeyCode() == 32) {
+				removeRowAtCoordinate(height-3);
 				// adjust when implementing switching blocks
 				while (current.y < map.size() - trimmedTile.size() - 1 && !checkBottomCollision()) {
 					current.y++;
@@ -275,14 +277,15 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	public void updateBlockOnMap() {
 		if (!isDead) {
+			
+			initMap();
+			
 			Point p = blocks.peek().getPosition();
 
 			trimmedTile = blocks.peek().getTrimmedTile();
 
 			int trimmedWidth = trimmedTile.size();
 			int trimmedHeight = trimmedTile.get(0).size();
-
-			initMap();
 
 			if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
 					&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
@@ -300,7 +303,10 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			}
 
 			for (Block tile : oldBlocks) {
+				if (tile != null) {
 				p = tile.getPosition();
+				
+				if (p != null) {
 
 				if (p.y == 1) {
 					death();
@@ -321,6 +327,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 							}
 						}
 					}
+				}
+				}
 				}
 			}
 		}
@@ -544,6 +552,47 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 		return restrictions;
 
+	}
+	
+	public void removeRowAtCoordinate(int r) {
+		
+		ArrayList<Block> blockArray = new ArrayList<Block>(blocks);
+		
+		ArrayList<Block> oldBlockArray = new ArrayList<Block>(oldBlocks);
+		
+		blockArray.addAll(oldBlockArray);
+		
+		
+		
+		for (Block b : blockArray) {
+			if (r >= b.getPosition().y && r < b.getPosition().y+b.getTrimmedTile().size()) {
+				System.out.println("Block: " + b + " is between " +  b.getPosition().y + " and " + (b.getPosition().y+b.getTrimmedTile().size()));
+				int row = r-b.getPosition().y;
+				
+				b.removeRow(row);
+			}
+			
+			if (b.isEmpty()) {
+				blocks.remove(b);
+			}
+		}
+		
+		for (Block b : blockArray) {
+			if (b.getPosition().y <= r) {
+				b.getPosition().y++;
+			}
+		}
+		
+		blocks.remove();
+		blocks.add(blockArray.get(0));
+		
+		blockArray.remove(0);
+		
+		oldBlocks.clear();
+		oldBlocks.addAll(blockArray);
+		
+		updateBlockOnMap();
+		
 	}
 
 }
