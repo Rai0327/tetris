@@ -45,6 +45,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	private int score = 0;
 	
+	private int additionalScore = 0;
+	
 
 	@Override
 	public void paint(Graphics g) {
@@ -55,13 +57,18 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		if (!isDead) {
 
 			Point curr = blocks.peek().getPosition();
-			trimmedTile = blocks.peek().getTrimmedTile();
+			trimmedTile = getTrimmedTile();
 
 			count++;
 
 			if (curr.y >= map.size() - trimmedTile.size() - 1 || checkBottomCollision()) {
 				touchCount++;
 				if (touchCount == 30) {
+					
+
+					score += additionalScore;
+					additionalScore = 0;
+					
 					oldBlocks.add(blocks.peek());
 					blocks.remove();
 					blocks.add(new Block((int) (Math.random() * 7) + 1));
@@ -74,7 +81,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			// implement gravity
 			if (count % level == 0 && !checkBottomCollision()) {
 				curr.y++;
-				score++;
 
 				blocks.peek().setPosition(curr);
 
@@ -86,6 +92,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			}
 
 			updateBlockOnMap();
+			
+			additionalScore = removeIfCompleteRow();
+			
 		}
 	}
 
@@ -104,7 +113,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			blocks.add(new Block((int) (Math.random() * 7) + 1));
 			blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 
-			trimmedTile = blocks.peek().getTrimmedTile();
+			trimmedTile = getTrimmedTile();
 			updateBlockOnMap();
 			renderer = new RenderMap(new Point(0, 0), 30, map);
 		} catch (IOException e) {
@@ -133,7 +142,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	public void keyPressed(KeyEvent e) {
 
 		if (!isDead) {
-			trimmedTile = blocks.peek().getTrimmedTile();
+			trimmedTile = getTrimmedTile();
 
 			Point current = blocks.peek().getPosition();
 
@@ -150,9 +159,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 						current.y -= 1;
 						blocks.peek().setPosition(current);
 					}
-
-					System.out.println("Distance from wall: " + (map.get(0).size() - current.x));
-					System.out.println("Tile: " + trimmedTile.size());
 
 					if (map.get(0).size() - current.x > trimmedTile.size()) {
 						blocks.peek().rotate();
@@ -194,7 +200,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			}
 
 			if (e.getKeyCode() == 32) {
-				removeRowAtCoordinate(height-3);
 				// adjust when implementing switching blocks
 				while (current.y < map.size() - trimmedTile.size() - 1 && !checkBottomCollision()) {
 					current.y++;
@@ -202,11 +207,20 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 				blocks.peek().setPosition(current);
 
+				score += additionalScore;
+
+				additionalScore = 0;
+				
 				oldBlocks.add(blocks.peek());
 				blocks.remove();
 				blocks.add(new Block((int) (Math.random() * 7) + 1));
 				blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 				touchCount = 0;
+			}
+			
+
+			if (e.getKeyCode() == 8) {
+			removeRowAtCoordinate(19+1);
 			}
 		}
 	}
@@ -282,7 +296,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			
 			Point p = blocks.peek().getPosition();
 
-			trimmedTile = blocks.peek().getTrimmedTile();
+			trimmedTile = getTrimmedTile();
 
 			int trimmedWidth = trimmedTile.size();
 			int trimmedHeight = trimmedTile.get(0).size();
@@ -304,31 +318,33 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 			for (Block tile : oldBlocks) {
 				if (tile != null) {
-				p = tile.getPosition();
+					  if (!tile.isEmpty()) {
+						  p = tile.getPosition();
 				
-				if (p != null) {
-
-				if (p.y == 1) {
-					death();
-				}
-
-				trimmedTile = tile.getTrimmedTile();
-				trimmedWidth = trimmedTile.size();
-				trimmedHeight = trimmedTile.get(0).size();
-				if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
-						&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
-					for (int y = p.y; y < p.y + trimmedWidth; y++) {
-						for (int x = p.x; x < p.x + trimmedHeight; x++) {
-
-							if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
-
-								map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
-								colors.get(y).set(x, tile.getColor());
+							if (p != null) {
+			
+							if (p.y == 1) {
+								death();
 							}
-						}
-					}
+			
+							trimmedTile = tile.getTrimmedTile();
+							trimmedWidth = trimmedTile.size();
+							trimmedHeight = trimmedTile.get(0).size();
+							if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
+									&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
+								for (int y = p.y; y < p.y + trimmedWidth; y++) {
+									for (int x = p.x; x < p.x + trimmedHeight; x++) {
+			
+										if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
+			
+											map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
+											colors.get(y).set(x, tile.getColor());
+										}
+									}
+								}
+							}
 				}
-				}
+					  }
 				}
 			}
 		}
@@ -414,7 +430,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	public ArrayList<String> checkAllCollisions() {
 		Point p = blocks.peek().getPosition();
 
-		trimmedTile = blocks.peek().getTrimmedTile();
+		trimmedTile = getTrimmedTile();
 
 		ArrayList<Point> leftCandidates = new ArrayList<>();
 
@@ -565,20 +581,26 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		
 		
 		for (Block b : blockArray) {
-			if (r >= b.getPosition().y && r < b.getPosition().y+b.getTrimmedTile().size()) {
-				System.out.println("Block: " + b + " is between " +  b.getPosition().y + " and " + (b.getPosition().y+b.getTrimmedTile().size()));
-				int row = r-b.getPosition().y;
-				
-				b.removeRow(row);
-			}
 			
+
 			if (b.isEmpty()) {
 				blocks.remove(b);
 			}
+			
+
+			//System.out.println("R: " + r + );
+			
+			
+			if (r > b.getPosition().y && r < b.getPosition().y+b.getTrimmedTile().size()-1) {
+				int row = r-b.getPosition().y;
+				System.out.println("REmoved at" + row);
+				b.removeRow(row);
+			}
+			
 		}
 		
 		for (Block b : blockArray) {
-			if (b.getPosition().y <= r) {
+			if (b.getPosition().y <= r && !(b.equals(blocks.peek()))) {
 				b.getPosition().y++;
 			}
 		}
@@ -592,6 +614,44 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		oldBlocks.addAll(blockArray);
 		
 		updateBlockOnMap();
+		
+	}
+	
+	public int removeIfCompleteRow() {
+		int count = 0;
+		
+		for (int r = 1; r < map.size()-1; r++) {
+			boolean rowIsSame =  true;
+			for (int c = 1; c < map.get(0).size()-2; c++) {
+
+				if ((map.get(r).get(c) != 2 | map.get(r).get(c+1) != 2))  {
+						rowIsSame = false;
+						break;
+					
+				}
+			}
+			
+			if (rowIsSame) {
+				removeRowAtCoordinate(r+3);
+			}
+			
+			count++;
+			
+		}
+		
+		return count;
+	}
+	
+	public ArrayList<ArrayList<Integer>> getTrimmedTile() {
+		if (blocks.peek().isEmpty()) {
+			blocks.remove();
+			return getTrimmedTile();
+		} else if (blocks.isEmpty()) {
+			return null;
+		} 
+		else {
+			return blocks.peek().getTrimmedTile();
+		}
 		
 	}
 

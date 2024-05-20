@@ -67,9 +67,15 @@ public class RenderMap {
 				if ((oldMap.get(y).get(x) != (map.get(y).get(x))) | initialDraw | tile == TileType.BLOCK) {
 					
 					BufferedImage buffer;
-					if (tile == 2) {
+					
+					if (y == map.size()-1) {
+
+						buffer = image.get(TileType.WALL);
+					}
+					else if (tile == 2) {
 						buffer = changeColor(image.get(tile), colors.get(y).get(x));
-					} else {
+					}
+					else {
 						buffer = image.get(tile);
 					}
 					
