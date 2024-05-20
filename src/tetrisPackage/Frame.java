@@ -26,17 +26,18 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	private Queue<Block> blocks = new LinkedList<>();
 	private ArrayList<Block> oldBlocks = new ArrayList<>();
+	private Queue<Block> hold = new LinkedList<>();
 
 	private int width = 10;
 	private int height = 20;
+	
+	boolean canHold = true;
 
 	private ArrayList<ArrayList<Integer>> map = new ArrayList<>();
 
 	private ArrayList<ArrayList<Color>> colors = new ArrayList<>();
 
 	private RenderMap renderer;
-
-	// private DisplayBlock dispBlock;
 
 	private ArrayList<ArrayList<Integer>> trimmedTile = new ArrayList<>();
 
@@ -45,10 +46,12 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	private int level = 29;
 
-	private int score = 0;
+	private int score = 1;
 	
 	private int additionalScore = 0;
 	
+	private int threshold = 100;
+
 	@Override
 	public void paint(Graphics g) {
 		super.paintComponent(g);
@@ -75,6 +78,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					blocks.add(new Block((int) (Math.random() * 7) + 1));
 					blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 					touchCount = 0;
+					canHold = true;
 				}
 
 			}
@@ -90,6 +94,11 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					blocks.peek().setPosition(curr);
 				}
 
+			}
+			System.out.println(score);
+			if (score > threshold && level != 1) {
+				level--;
+				threshold += 100;
 			}
 
 			updateBlockOnMap();
@@ -220,8 +229,22 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				blocks.add(new Block((int) (Math.random() * 7) + 1));
 				blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 				touchCount = 0;
+				canHold = true;
 			}
 			
+			if (e.getKeyCode() == 67 && canHold) {
+				hold.add(blocks.peek());
+				if (hold.size() == 1) {
+					blocks.remove();
+				} else {
+					setFirstElement(blocks, hold.remove());
+				}
+				hold.peek().reset();
+				blocks.add(new Block((int) (Math.random() * 7) + 1));
+				blocks.peek().setPosition(new Point(width / 2 - 2, 1));
+				touchCount = 0;
+				canHold = false;
+			}
 
 			if (e.getKeyCode() == 8) {
 			removeRowAtCoordinate(19+1);
@@ -657,6 +680,18 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			return blocks.peek().getTrimmedTile();
 		}
 		
+	}
+	
+	public void setFirstElement(Queue<Block> q, Block b) {
+		Queue<Block> temp = new LinkedList<>();
+		temp.add(b);
+		q.remove();
+		while (!q.isEmpty()) {
+			temp.add(q.remove());
+		}
+		while (!temp.isEmpty()) {
+			q.add(temp.remove());
+		}
 	}
 
 }
