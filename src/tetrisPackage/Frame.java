@@ -618,10 +618,12 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			//System.out.println("R: " + r + );
 			
 			
-			if (r > b.getPosition().y && r < b.getPosition().y+b.getTrimmedTile().size()-1) {
-				int row = r-b.getPosition().y;
-				System.out.println("REmoved at" + row);
-				b.removeRow(row);
+			if (b.getPosition() != null) {
+				if (r > b.getPosition().y && r < b.getPosition().y+b.getTrimmedTile().size()-1) {
+					int row = r-b.getPosition().y;
+					System.out.println("REmoved at" + row);
+					b.removeRow(row);
+				}	
 			}
 			
 		}
