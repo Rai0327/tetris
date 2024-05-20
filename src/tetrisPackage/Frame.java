@@ -2,6 +2,7 @@ package tetrisPackage;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Queue;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -47,12 +49,11 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
 	private int additionalScore = 0;
 	
-
 	@Override
 	public void paint(Graphics g) {
 		super.paintComponent(g);
 		
-			renderer.paint(g, colors);
+		renderer.paint(g, colors);
 	
 		if (!isDead) {
 
@@ -95,6 +96,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			
 			additionalScore = removeIfCompleteRow();
 			
+			g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
+			g.drawString("Current Score: " + score, 325, 300);
 		}
 	}
 
@@ -108,6 +111,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	public Frame() {
 
 		initMap();
+		
+		frame = new JFrame("Tetris Game");
 
 		try {
 			blocks.add(new Block((int) (Math.random() * 7) + 1));
@@ -121,7 +126,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			System.out.println("Something went wrong.");
 		}
 
-		frame = new JFrame("Tetris Game");
 		frame.setSize(new Dimension(900, 900));
 		frame.setBackground(Color.blue);
 		frame.addKeyListener(this);
