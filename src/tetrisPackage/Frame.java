@@ -62,49 +62,52 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 			Point curr = blocks.peek().getPosition();
 			trimmedTile = getTrimmedTile();
+			
+			if (curr != null) {
 
-			count++;
-
-			if (curr.y >= map.size() - trimmedTile.size() - 1 || checkBottomCollision()) {
-				touchCount++;
-				if (touchCount == 30) {
-					score += additionalScore;
-					additionalScore = 0;
-					
-					oldBlocks.add(blocks.peek());
-					blocks.remove();
-					blocks.add(new Block((int) (Math.random() * 7) + 1));
-					blocks.peek().setPosition(new Point(width / 2 - 2, 1));
-					touchCount = 0;
-					canHold = true;
+				count++;
+	
+				if (curr.y >= map.size() - trimmedTile.size() - 1 || checkBottomCollision()) {
+					touchCount++;
+					if (touchCount == 30) {
+						score += additionalScore;
+						additionalScore = 0;
+						
+						oldBlocks.add(blocks.peek());
+						blocks.remove();
+						blocks.add(new Block((int) (Math.random() * 7) + 1));
+						blocks.peek().setPosition(new Point(width / 2 - 2, 1));
+						touchCount = 0;
+						canHold = true;
+					}
+	
 				}
-
-			}
-
-			// implement gravity
-			if (count % level == 0 && !checkBottomCollision()) {
-				curr.y++;
-
-				blocks.peek().setPosition(curr);
-
-				while (curr.y >= map.size() - trimmedTile.size()) {
-					curr.y--;
+	
+				// implement gravity
+				if (count % level == 0 && !checkBottomCollision()) {
+					curr.y++;
+	
 					blocks.peek().setPosition(curr);
+	
+					while (curr.y >= map.size() - trimmedTile.size()) {
+						curr.y--;
+						blocks.peek().setPosition(curr);
+					}
+	
 				}
-
+				System.out.println(score);
+				if (score > threshold && level != 1) {
+					level--;
+					threshold += 100;
+				}
+	
+				updateBlockOnMap();
+				
+				additionalScore = removeIfCompleteRow();
+				
+				g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
+				g.drawString("Current Score: " + score, 325, 300);
 			}
-			System.out.println(score);
-			if (score > threshold && level != 1) {
-				level--;
-				threshold += 100;
-			}
-
-			updateBlockOnMap();
-			
-			additionalScore = removeIfCompleteRow();
-			
-			g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
-			g.drawString("Current Score: " + score, 325, 300);
 		}
 	}
 
@@ -326,16 +329,18 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			int trimmedWidth = trimmedTile.size();
 			int trimmedHeight = trimmedTile.get(0).size();
 
-			if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
-					&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
-				for (int y = p.y; y < p.y + trimmedWidth; y++) {
-					for (int x = p.x; x < p.x + trimmedHeight; x++) {
-
-						if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
-							map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
-
-							colors.get(y).set(x, blocks.peek().getColor());
-
+			if (p != null) {
+				if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
+						&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
+					for (int y = p.y; y < p.y + trimmedWidth; y++) {
+						for (int x = p.x; x < p.x + trimmedHeight; x++) {
+	
+							if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
+								map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
+	
+								colors.get(y).set(x, blocks.peek().getColor());
+	
+							}
 						}
 					}
 				}
@@ -473,119 +478,121 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		restrictions.add("");
 
 		// Add candidates from left
-		for (int r = 0; r < trimmedTile.size(); r++) {
-			for (int c = 0; c < trimmedTile.get(r).size(); c++) {
-
-				int x = p.x + c - 1;
-				int y = p.y + r;
-
-				if (0 <= y && x < height) {
-					if (0 <= y && x < width) {
-						if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-							leftCandidates.add(new Point(x, y));
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		// Add candidates from right
-		for (int r = trimmedTile.size() - 1; r >= 0; r--) {
-			for (int c = trimmedTile.get(r).size() - 1; c >= 0; c--) {
-
-				int x = p.x + c + 1;
-				int y = p.y + r;
-
-				if (0 <= y && x < height) {
-					if (0 <= y && x < width) {
-
-						if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-							rightCandidates.add(new Point(p.x + c + 1, p.y + r));
-							break;
-						}
-
-					}
-				}
-			}
-		}
-
-		// Add candidates from bottom
-		for (int c = trimmedTile.get(0).size() - 1; c >= 0; c--) {
-			for (int r = trimmedTile.size() - 1; r >= 0; r--) {
-
-				int x = p.x + c;
-				int y = p.y + r + 1;
-				if (0 <= y && x < height) {
-					if (0 <= y && x < width) {
-						if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-							bottomCandidates.add(new Point(x, y));
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		// Add candidates from top
-		for (int c = 0; c < trimmedTile.get(0).size(); c++) {
+		if (p!= null) {
 			for (int r = 0; r < trimmedTile.size(); r++) {
-				int x = p.x + c;
-				int y = p.y + r - 1;
-
-				if (0 <= y && x < height) {
-					if (0 <= y && x < width) {
-						if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-							topCandidates.add(new Point(x, y));
-							break;
+				for (int c = 0; c < trimmedTile.get(r).size(); c++) {
+	
+					int x = p.x + c - 1;
+					int y = p.y + r;
+	
+					if (0 <= y && x < height) {
+						if (0 <= y && x < width) {
+							if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+								leftCandidates.add(new Point(x, y));
+								break;
+							}
 						}
 					}
 				}
 			}
-		}
-
-		for (Point point : leftCandidates) {
-			if (0 <= point.y && point.y < height) {
-				if (0 <= point.x && point.x < width) {
-					if (map.get(point.y).get(point.x) == TileType.BLOCK
-							| map.get(point.y).get(point.x) == TileType.WALL) {
-						restrictions.set(0, "left");
+	
+			// Add candidates from right
+			for (int r = trimmedTile.size() - 1; r >= 0; r--) {
+				for (int c = trimmedTile.get(r).size() - 1; c >= 0; c--) {
+	
+					int x = p.x + c + 1;
+					int y = p.y + r;
+	
+					if (0 <= y && x < height) {
+						if (0 <= y && x < width) {
+	
+							if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+								rightCandidates.add(new Point(p.x + c + 1, p.y + r));
+								break;
+							}
+	
+						}
 					}
 				}
 			}
-		}
-
-		for (Point point : rightCandidates) {
-
-			if (0 <= point.y && point.y < height) {
-				if (0 <= point.x && point.x < width) {
-					if (map.get(point.y).get(point.x) == TileType.BLOCK
-							| map.get(point.y).get(point.x) == TileType.WALL) {
-						restrictions.set(1, "right");
+	
+			// Add candidates from bottom
+			for (int c = trimmedTile.get(0).size() - 1; c >= 0; c--) {
+				for (int r = trimmedTile.size() - 1; r >= 0; r--) {
+	
+					int x = p.x + c;
+					int y = p.y + r + 1;
+					if (0 <= y && x < height) {
+						if (0 <= y && x < width) {
+							if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+								bottomCandidates.add(new Point(x, y));
+								break;
+							}
+						}
 					}
 				}
 			}
-		}
-
-		for (Point point : bottomCandidates) {
-
-			if (0 <= point.y && point.y < height) {
-				if (0 <= point.x && point.x < width) {
-					if (map.get(point.y).get(point.x) == TileType.BLOCK
-							| map.get(point.y).get(point.x) == TileType.WALL) {
-						restrictions.set(2, "bottom");
+	
+			// Add candidates from top
+			for (int c = 0; c < trimmedTile.get(0).size(); c++) {
+				for (int r = 0; r < trimmedTile.size(); r++) {
+					int x = p.x + c;
+					int y = p.y + r - 1;
+	
+					if (0 <= y && x < height) {
+						if (0 <= y && x < width) {
+							if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+								topCandidates.add(new Point(x, y));
+								break;
+							}
+						}
 					}
 				}
 			}
-		}
-
-		for (Point point : topCandidates) {
-
-			if (0 <= point.y && point.y < height) {
-				if (0 <= point.x && point.x < width) {
-					if (map.get(point.y).get(point.x) == TileType.BLOCK
-							| map.get(point.y).get(point.x) == TileType.WALL) {
-						restrictions.set(3, "top");
+	
+			for (Point point : leftCandidates) {
+				if (0 <= point.y && point.y < height) {
+					if (0 <= point.x && point.x < width) {
+						if (map.get(point.y).get(point.x) == TileType.BLOCK
+								| map.get(point.y).get(point.x) == TileType.WALL) {
+							restrictions.set(0, "left");
+						}
+					}
+				}
+			}
+	
+			for (Point point : rightCandidates) {
+	
+				if (0 <= point.y && point.y < height) {
+					if (0 <= point.x && point.x < width) {
+						if (map.get(point.y).get(point.x) == TileType.BLOCK
+								| map.get(point.y).get(point.x) == TileType.WALL) {
+							restrictions.set(1, "right");
+						}
+					}
+				}
+			}
+	
+			for (Point point : bottomCandidates) {
+	
+				if (0 <= point.y && point.y < height) {
+					if (0 <= point.x && point.x < width) {
+						if (map.get(point.y).get(point.x) == TileType.BLOCK
+								| map.get(point.y).get(point.x) == TileType.WALL) {
+							restrictions.set(2, "bottom");
+						}
+					}
+				}
+			}
+	
+			for (Point point : topCandidates) {
+	
+				if (0 <= point.y && point.y < height) {
+					if (0 <= point.x && point.x < width) {
+						if (map.get(point.y).get(point.x) == TileType.BLOCK
+								| map.get(point.y).get(point.x) == TileType.WALL) {
+							restrictions.set(3, "top");
+						}
 					}
 				}
 			}
