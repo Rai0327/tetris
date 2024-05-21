@@ -68,8 +68,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			if (curr.y >= map.size() - trimmedTile.size() - 1 || checkBottomCollision()) {
 				touchCount++;
 				if (touchCount == 30) {
-					
-
 					score += additionalScore;
 					additionalScore = 0;
 					
@@ -629,8 +627,10 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		}
 		
 		for (Block b : blockArray) {
-			if (b.getPosition().y <= r && !(b.equals(blocks.peek()))) {
-				b.getPosition().y++;
+			if (b.getPosition() != null) {
+				if (b.getPosition().y <= r && !(b.equals(blocks.peek()))) {
+					b.getPosition().y++;
+				}
 			}
 		}
 		
