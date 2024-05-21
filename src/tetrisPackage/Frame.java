@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -220,7 +221,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			
 
 			if (e.getKeyCode() == 8) {
-			removeRowAtCoordinate(19+1);
+			removeRowAtCoordinate(18);
 			}
 		}
 	}
@@ -335,6 +336,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 								for (int y = p.y; y < p.y + trimmedWidth; y++) {
 									for (int x = p.x; x < p.x + trimmedHeight; x++) {
 			
+										
+										
 										if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
 			
 											map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
@@ -578,8 +581,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		
 		blockArray.addAll(oldBlockArray);
 		
-		
-		
 		for (Block b : blockArray) {
 			
 
@@ -587,22 +588,32 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				blocks.remove(b);
 			}
 			
-
-			//System.out.println("R: " + r + );
 			
-			
-			if (r > b.getPosition().y && r < b.getPosition().y+b.getTrimmedTile().size()-1) {
-				int row = r-b.getPosition().y;
+			if (r >= b.getPosition().y+1 && r <= b.getPosition().y+b.getTrimmedTile().size()) {
+				int row = r-b.getPosition().y-1;
 				System.out.println("REmoved at" + row);
 				b.removeRow(row);
+				
+				
+			
 			}
 			
 		}
 		
+		
+		
+		
 		for (Block b : blockArray) {
-			if (b.getPosition().y <= r && !(b.equals(blocks.peek()))) {
-				b.getPosition().y++;
+		/*
+			if (!(b.equals(blocks.peek()))) {
+			
+			if (!(r >= b.getPosition().y+1 && r <= b.getPosition().y+b.getTrimmedTile().size())) {
+			if (r <= b.getPosition().y+1) {
+				b.getPosition().y += 1;
+		}
 			}
+			
+			}*/
 		}
 		
 		blocks.remove();
@@ -621,18 +632,17 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		int count = 0;
 		
 		for (int r = 1; r < map.size()-1; r++) {
-			boolean rowIsSame =  true;
-			for (int c = 1; c < map.get(0).size()-2; c++) {
+			boolean rowIsSame =  false;
+			int sum = 0;
+			for (int c = 1; c < map.get(0).size()-1; c++) {
 
-				if ((map.get(r).get(c) != 2 | map.get(r).get(c+1) != 2))  {
-						rowIsSame = false;
-						break;
-					
-				}
+				sum += map.get(r).get(c);
 			}
 			
+			rowIsSame = (sum == (width-2)*TileType.BLOCK);
+			
 			if (rowIsSame) {
-				removeRowAtCoordinate(r+3);
+				removeRowAtCoordinate(r);
 			}
 			
 			count++;

@@ -11,6 +11,8 @@ public class Block {
 	
 	private Color color;
 	
+	private ArrayList<Integer> removedRows = new ArrayList<Integer>();
+	
 	public Block(int piece) {
 		if (piece == 1) { //Line block
 			int[][] temp = { {0, 0, 0, 0}, 
@@ -91,24 +93,19 @@ public class Block {
 	}
 	
 	public void removeRow(int r) {
-			boolean isRowNotZero = false;
+			removedRows.add(r);
 			
-			for (int c = tile[0].length-1; c >= 0; c--) {
-				if (tile[r][c] != 0) {
-					isRowNotZero = true;
-					break;
-				}
-			}
-			
-			if (isRowNotZero) {
-				for (int c = 0; c < tile[0].length; c++) {
-					tile[r][c] = 0;
-				}
-				
-			}
-		
+			position.y++;
 	}
 	
+	public int shiftAmount() {
+		if (removedRows.size() > 0) {
+			return removedRows.size();
+		} else {
+			return 0;
+		}
+	}
+
 	public ArrayList<ArrayList<Integer>> getTrimmedTile() {
 		ArrayList<ArrayList<Integer>> trimmedTiles = new ArrayList<ArrayList<Integer>>();
 		
@@ -122,7 +119,8 @@ public class Block {
 				temp.add(tile[r][c]);
 			}
 			if (isRowNotZero) {
-				trimmedTiles.add(temp);
+		
+					trimmedTiles.add(temp);
 			}
 		}
 		
@@ -143,6 +141,21 @@ public class Block {
 				c--;
 			}
 		}
+		
+
+  		ArrayList<Integer> zeroes = new ArrayList<Integer>();
+		for (int c = 0; c < trimmedTiles.get(0).size(); c++) {
+			zeroes.add(0);
+		}
+		
+		for (int r : removedRows) {
+			trimmedTiles.set(r, zeroes);
+		}
+		
+		trimmedTiles.remove(zeroes);
+
+		System.out.println(trimmedTiles);
+	
 		
 		return trimmedTiles;
 	}
