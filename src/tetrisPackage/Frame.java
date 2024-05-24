@@ -55,10 +55,10 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	@Override
 	public void paint(Graphics g) {
 		super.paintComponent(g);
-		
-		renderer.paint(g, colors);
-	
+			
 		if (!isDead) {
+			
+			renderer.paint(g, colors);
 
 			Point curr = blocks.peek().getPosition();
 			trimmedTile = getTrimmedTile();
@@ -95,7 +95,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					}
 	
 				}
-				System.out.println(score);
 				if (score > threshold && level != 1) {
 					level--;
 					threshold += 100;
@@ -108,6 +107,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
 				g.drawString("Current Score: " + score, 325, 300);
 			}
+		} else {
+			renderer.paintDeath(g);
 		}
 	}
 
@@ -358,28 +359,28 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 						  p = tile.getPosition();
 				
 							if (p != null) {
-			
-							if (p.y == 1) {
-								death();
-							}
-			
-							trimmedTile = tile.getTrimmedTile();
-							trimmedWidth = trimmedTile.size();
-							trimmedHeight = trimmedTile.get(0).size();
-							if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
-									&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
-								for (int y = p.y; y < p.y + trimmedWidth; y++) {
-									for (int x = p.x; x < p.x + trimmedHeight; x++) {
-			
-										if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
-			
-											map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
-											colors.get(y).set(x, tile.getColor());
+								System.out.println("p.y:" + p.y);
+								if (p.y <= 1) {
+									death();
+								}
+				
+								trimmedTile = tile.getTrimmedTile();
+								trimmedWidth = trimmedTile.size();
+								trimmedHeight = trimmedTile.get(0).size();
+								if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
+										&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
+									for (int y = p.y; y < p.y + trimmedWidth; y++) {
+										for (int x = p.x; x < p.x + trimmedHeight; x++) {
+				
+											if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
+				
+												map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
+												colors.get(y).set(x, tile.getColor());
+											}
 										}
 									}
 								}
 							}
-				}
 					  }
 				}
 			}

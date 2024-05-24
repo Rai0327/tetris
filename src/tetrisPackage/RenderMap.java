@@ -1,6 +1,7 @@
 package tetrisPackage;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -103,6 +104,14 @@ public class RenderMap {
 	     }
 				
 	}
+	
+	public void paintDeath(Graphics g) {
+		Graphics2D g2 = (Graphics2D)g;
+		
+		g2.setFont(new Font("TimesRoman", Font.PLAIN, 50)); 
+		g2.drawString("YOU DIED", 100, 100);;
+	}
+	
 	
 	public BufferedImage changeColor(BufferedImage image, Color color) {
 		
