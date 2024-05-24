@@ -21,7 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
 
-public class Frame extends JPanel implements KeyListener, ActionListener {
+public class NewFrame extends JPanel implements KeyListener, ActionListener {
 
 	private Queue<Block> blocks = new LinkedList<>();
 	private ArrayList<Block> oldBlocks = new ArrayList<>();
@@ -51,8 +51,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	@Override
 	public void paint(Graphics g) {
-		updateBlockOnMap();
-		
 		super.paintComponent(g);
 		
 			renderer.paint(g, colors);
@@ -71,8 +69,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 					score += additionalScore;
 					additionalScore = 0;
-					
-					permanentlyDrawBlock();
 					
 					oldBlocks.add(blocks.peek());
 					blocks.remove();
@@ -96,7 +92,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 			}
 
-			
+			updateBlockOnMap();
 			
 			additionalScore = removeIfCompleteRow();
 			
@@ -110,19 +106,16 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	JFrame frame;
 	Store store;
 
-	public Frame() {
+	public NewFrame() {
 
+		initMap();
 
 		try {
 			blocks.add(new Block((int) (Math.random() * 7) + 1));
 			blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 
 			trimmedTile = getTrimmedTile();
-
-			initMap();
 			updateBlockOnMap();
-			
-			
 			renderer = new RenderMap(new Point(0, 0), 30, map);
 		} catch (IOException e) {
 
@@ -218,7 +211,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				score += additionalScore;
 
 				additionalScore = 0;
-				permanentlyDrawBlock();
 				
 				oldBlocks.add(blocks.peek());
 				blocks.remove();
@@ -229,7 +221,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			
 
 			if (e.getKeyCode() == 8) {
-			removeRowAtCoordinate(17);
+			removeRowAtCoordinate(18);
 			}
 		}
 	}
@@ -299,9 +291,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	}
 
 	public void updateBlockOnMap() {
-		//if (!isDead) {
+		if (!isDead) {
 			
-			//initMap();
+			initMap();
 			
 			Point p = blocks.peek().getPosition();
 
@@ -310,29 +302,20 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			int trimmedWidth = trimmedTile.size();
 			int trimmedHeight = trimmedTile.get(0).size();
 			
-
-
-			for (int x = 0; x < width; x++) {
-				for (int y = 0; y < height; y++) {
-				
-					if (x == width-1 | y == height-1) {
-						map.get(y).set(x, TileType.WALL);
-					}
-					else if (map.get(y).get(x) == TileType.SELECTED) {
-						map.get(y).set(x, TileType.EMPTY);
-						
-					}
-				}
-			}
-			
-			
 			if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
 					&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
 				for (int y = p.y; y < p.y + trimmedWidth; y++) {
 					for (int x = p.x; x < p.x + trimmedHeight; x++) {
+
+						if (map.get(y).get(x) == TileType.SELECTED) {
+							map.get(y).set(x, 0);
+
+							colors.get(y).set(x, new Color(0, 0, 0));
+
+						}
 						
 						if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
-							map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
+							map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
 
 							colors.get(y).set(x, blocks.peek().getColor());
 
@@ -341,43 +324,16 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				}
 			}
 
-			
-	}
-	
-	public void permanentlyDrawBlock() {
-		Point p = blocks.peek().getPosition();
+			if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
+					&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
+				for (int y = p.y; y < p.y + trimmedWidth; y++) {
+					for (int x = p.x; x < p.x + trimmedHeight; x++) {
 
-		trimmedTile = getTrimmedTile();
-
-		int trimmedWidth = trimmedTile.size();
-		int trimmedHeight = trimmedTile.get(0).size();
-
-		for (int x = 1; x < width - 1; x++) {
-			for (int y = 1; y < height - 1; y++) {
-				if (x == width-1 | y == height-1) {
-					map.get(y).set(x, TileType.WALL);
-				}
-				else if (map.get(y).get(x) == TileType.SELECTED) {
-					map.get(y).set(x, TileType.EMPTY);
-					
-				}
-			}
-		}
-		
-		
-		if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
-				&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
-			for (int y = p.y; y < p.y + trimmedWidth; y++) {
-				for (int x = p.x; x < p.x + trimmedHeight; x++) {
-					
-					if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
-						map.get(y).set(x, 2);
-
-						colors.get(y).set(x, blocks.peek().getColor());
 
 					}
 				}
 			}
+
 		}
 	}
 
@@ -443,17 +399,13 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		
 		blocks.peek().rotate();
 		
-		ArrayList<ArrayList<Integer>> oldMap = (ArrayList<ArrayList<Integer>>)map.clone();
-		
 		updateBlockOnMap();
 		
-		boolean res = checkTopCollision() | checkBottomCollision() |  checkLeftCollision() | checkRightCollision();
+		boolean res = checkTopCollision() | checkBottomCollision();
 		
 		for (int i = 0; i < 3; i++) {
 			blocks.peek().rotate();
 		}
-		
-		map = oldMap;
 		
 		updateBlockOnMap();
 		
@@ -557,7 +509,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		for (Point point : leftCandidates) {
 			if (0 <= point.y && point.y < height) {
 				if (0 <= point.x && point.x < width) {
-					if (map.get(point.y).get(point.x) == TileType.BLOCK | map.get(point.y).get(point.x) == TileType.SELECTED
+					if (map.get(point.y).get(point.x) == TileType.BLOCK
 							| map.get(point.y).get(point.x) == TileType.WALL) {
 						restrictions.set(0, "left");
 					}
@@ -569,7 +521,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 			if (0 <= point.y && point.y < height) {
 				if (0 <= point.x && point.x < width) {
-					if (map.get(point.y).get(point.x) == TileType.BLOCK |  map.get(point.y).get(point.x) == TileType.SELECTED
+					if (map.get(point.y).get(point.x) == TileType.BLOCK
 							| map.get(point.y).get(point.x) == TileType.WALL) {
 						restrictions.set(1, "right");
 					}
@@ -581,7 +533,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 			if (0 <= point.y && point.y < height) {
 				if (0 <= point.x && point.x < width) {
-					if (map.get(point.y).get(point.x) == TileType.BLOCK |  map.get(point.y).get(point.x) == TileType.SELECTED
+					if (map.get(point.y).get(point.x) == TileType.BLOCK
 							| map.get(point.y).get(point.x) == TileType.WALL) {
 						restrictions.set(2, "bottom");
 					}
@@ -593,7 +545,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 			if (0 <= point.y && point.y < height) {
 				if (0 <= point.x && point.x < width) {
-					if (map.get(point.y).get(point.x) == TileType.BLOCK | map.get(point.y).get(point.x) == TileType.SELECTED
+					if (map.get(point.y).get(point.x) == TileType.BLOCK
 							| map.get(point.y).get(point.x) == TileType.WALL) {
 						restrictions.set(3, "top");
 					}
@@ -606,27 +558,55 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	}
 	
 	public void removeRowAtCoordinate(int r) {
-		map.remove(r);
-		colors.remove(r);
 		
-		ArrayList<Color> newColors = new ArrayList<Color>();
+		ArrayList<Block> blockArray = new ArrayList<Block>(blocks);
 		
-		ArrayList<Integer> newRow = new ArrayList<Integer>();
-		newRow.add(1);
-		newColors.add(new Color(0, 0, 0));
-		for (int c = 1; c < map.get(r).size()-1; c++) {
-			newRow.add(0);
+		ArrayList<Block> oldBlockArray = new ArrayList<Block>(oldBlocks);
+		
+		blockArray.addAll(oldBlockArray);
+		
+		for (Block b : blockArray) {
+			
 
-			newColors.add(new Color(0, 0, 0));
-
+			if (b.isEmpty()) {
+				blocks.remove(b);
+			}
+			
+			
+			if (r >= b.getPosition().y+1 && r <= b.getPosition().y+b.getTrimmedTile().size()) {
+				int row = r-b.getPosition().y-1;
+				System.out.println("Removed at" + row);
+				
+				b.removeRow(row);
+				
+				
+			
+			}
+			
 		}
-		newRow.add(1);
-
-		newColors.add(0, new Color(0, 0, 0));
 		
-		map.add(1, newRow);
-		colors.add(1, newColors);
 		
+		
+		
+		for (Block b : blockArray) {
+		
+			if (!(b.equals(blocks.peek()))) {
+			
+					if (r < b.getPosition().y+1) {
+				//b.getPosition().y += 1;
+				}
+			
+			
+			}
+		}
+		
+		blocks.remove();
+		blocks.add(blockArray.get(0));
+		
+		blockArray.remove(0);
+		
+		oldBlocks.clear();
+		oldBlocks.addAll(blockArray);
 		
 		updateBlockOnMap();
 		

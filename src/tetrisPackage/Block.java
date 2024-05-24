@@ -16,44 +16,44 @@ public class Block {
 	public Block(int piece) {
 		if (piece == 1) { //Line block
 			int[][] temp = { {0, 0, 0, 0}, 
-							 {2, 2, 2, 2}, 
+							 {3, 3, 3, 3}, 
 							 {0, 0, 0, 0}, 
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 2) { //Square block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 2, 2, 0},
-							 {0, 2, 2, 0},
+							 {0, 3, 3, 0},
+							 {0, 3, 3, 0},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 3) { //T-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 2, 0, 0},
-							 {2, 2, 2, 0},
+							 {0, 3, 0, 0},
+							 {3, 3, 3, 0},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 4) { //J-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 2, 0, 0},
-							 {0, 2, 2, 2},
+							 {0, 3, 0, 0},
+							 {0, 3, 3, 3},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 5) { //L-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 0, 2, 0},
-							 {2, 2, 2, 0},
+							 {0, 0, 3, 0},
+							 {3, 3, 3, 0},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 6) { //S-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 2, 2, 0},
-							 {2, 2, 0, 0},
+							 {0, 3, 3, 0},
+							 {3, 3, 0, 0},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		} else if (piece == 7) { //Z-block
 			int[][] temp = { {0, 0, 0, 0},
-							 {0, 2, 2, 0},
-							 {0, 0, 2, 2},
+							 {0, 3, 3, 0},
+							 {0, 0, 3, 3},
 							 {0, 0, 0, 0} };
 			tile = temp;
 		}
@@ -94,11 +94,10 @@ public class Block {
 	
 	public void removeRow(int r) {
 			removedRows.add(r);
-			
-			position.y++;
 	}
 	
 	public int shiftAmount() {
+		
 		if (removedRows.size() > 0) {
 			return removedRows.size();
 		} else {
@@ -149,15 +148,21 @@ public class Block {
 		}
 		
 		for (int r : removedRows) {
-			trimmedTiles.set(r, zeroes);
+				trimmedTiles.set(r, zeroes);
 		}
 		
-		trimmedTiles.remove(zeroes);
-
-		System.out.println(trimmedTiles);
-	
 		
 		return trimmedTiles;
+	}
+	
+	public boolean isSplit() {
+		ArrayList<ArrayList<Integer>> trimmed = getTrimmedTile();
+		
+		if (trimmed.size() > 2) {
+			
+		}
+		
+		return false;
 	}
 	
 	private Color randomColor() {
@@ -188,4 +193,5 @@ public class Block {
 		
 		return !isNotEmpty;
 	}
+	
 }
