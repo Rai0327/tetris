@@ -159,6 +159,12 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			trimmedTile = getTrimmedTile();
 
 			Point current = blocks.peek().getPosition();
+			
+			if (current == null) {
+				blocks.add(new Block((int) (Math.random() * 7) + 1));
+				blocks.peek().setPosition(new Point(width / 2 - 2, 1));
+				current = blocks.peek().getPosition();
+			}
 
 			if ((e.getKeyCode() == 87 || e.getKeyCode() == 38)) {
 
