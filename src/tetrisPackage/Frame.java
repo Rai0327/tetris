@@ -64,7 +64,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	// If dead or not
 	private boolean isDead = false;
 	
-  // Threshold of score
+	// Threshold of score
 	private int threshold = 100;
   
 	@Override
@@ -124,14 +124,12 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					}
 	
 				}
-				if (score > threshold && level != 1) {
-					level--;
+				if (score > threshold && gravityFactor != 1) {
+					gravityFactor--;
 					threshold += 100;
 				}
 	
-				updateBlockOnMap();
-				
-				additionalScore = removeIfCompleteRow();
+				updateBlockOnMap(false);
 				
 				g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
 				g.drawString("Current Score: " + score, 325, 300);
@@ -284,10 +282,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 				touchCount = 0;
 				canHold = false;
-			}
-
-			if (e.getKeyCode() == 8) {
-			removeRowAtCoordinate(17);
 			}
 			
 		}
@@ -752,14 +746,16 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			// Sum variable
 			int sum = 0;
 			
+			boolean allBlock = true;
+			
 			// Sums row
-			for (int c = 1; c < map.get(0).size()-1; c++) {
-				sum += map.get(r).get(c);
+			for (int c = 1; c < map.get(0).size()-2; c++) {
+				allBlock &= (map.get(r).get(c) == TileType.BLOCK) && map.get(r).get(c).equals(map.get(r).get(c+1));
 			}
 			
 			// If sum is entirely BLOCK, then remove row
 			// Prevents removal of row when SELECTED block travels through
-			if (sum == (width-2)*TileType.BLOCK) {
+			if (allBlock) {
 				removeRowAtCoordinate(r);
 				// Success! Increment count by 1
 				count++;
