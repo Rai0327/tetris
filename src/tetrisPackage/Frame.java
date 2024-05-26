@@ -398,46 +398,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 		}
 	}
-	
-	public void permanentlyDrawBlock() {
-		
-		if (!isDead) {
-			Point p = blocks.peek().getPosition();
-	
-			trimmedTile = getTrimmedTile();
-	
-			int trimmedWidth = trimmedTile.size();
-			int trimmedHeight = trimmedTile.get(0).size();
-	
-			for (int x = 1; x < width - 1; x++) {
-				for (int y = 1; y < height - 1; y++) {
-					if (x == width-1 | y == height-1) {
-						map.get(y).set(x, TileType.WALL);
-					}
-					else if (map.get(y).get(x) == TileType.SELECTED) {
-						map.get(y).set(x, TileType.EMPTY);
-						
-					}
-				}
-			}
-			
-			
-			if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
-					&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
-				for (int y = p.y; y < p.y + trimmedWidth; y++) {
-					for (int x = p.x; x < p.x + trimmedHeight; x++) {
-						
-						if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
-							map.get(y).set(x, TileType.BLOCK);
-	
-							colors.get(y).set(x, blocks.peek().getColor());
-	
-						}
-					}
-				}
-			}
-		}
-	}
 
 	public void death() { // death logic
 		
