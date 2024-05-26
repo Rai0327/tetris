@@ -46,7 +46,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	private int score = 0;
 	
-	private int additionalScore = 0;
+	// private int additionalScore = 0;
 	
 
 	@Override
@@ -67,10 +67,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			if (curr.y >= map.size() - trimmedTile.size() - 1 || checkBottomCollision()) {
 				touchCount++;
 				if (touchCount == 30) {
-					
-
-					score += additionalScore;
-					additionalScore = 0;
 					
 					permanentlyDrawBlock();
 					
@@ -97,8 +93,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			}
 
 			
-			
-			additionalScore = removeIfCompleteRow();
+
+			score += removeIfCompleteRow();
 			
 		}
 	}
@@ -215,9 +211,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 				blocks.peek().setPosition(current);
 
-				score += additionalScore;
-
-				additionalScore = 0;
 				permanentlyDrawBlock();
 				
 				oldBlocks.add(blocks.peek());
@@ -231,6 +224,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			if (e.getKeyCode() == 8) {
 			removeRowAtCoordinate(17);
 			}
+			
 		}
 	}
 
@@ -440,26 +434,58 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	}
 
 	public boolean checkCollisionsForRotation() {
+
+		// Create variables representing old map
+		ArrayList<ArrayList<Integer>> oldMap =  new ArrayList<ArrayList<Integer>>();
+		ArrayList<ArrayList<Color>> oldColors = new ArrayList<ArrayList<Color>>();
 		
+		// Deep copies existing map as an "old" map
+		oldMap = clearMapAndClone(oldMap, map);
+		oldColors = clearMapAndClone(oldColors, colors);
+		
+		// Rotates current block
 		blocks.peek().rotate();
 		
-		ArrayList<ArrayList<Integer>> oldMap = (ArrayList<ArrayList<Integer>>)map.clone();
-		
+		// Updates map to new state
 		updateBlockOnMap();
 		
-		boolean res = checkTopCollision() | checkBottomCollision() |  checkLeftCollision() | checkRightCollision();
+		// Check if any block collides with wall or already placed block
+		boolean result = false;
 		
+		for (int r = 0; r < oldMap.size(); r++) {
+			for (int c = 0; c < oldMap.get(r).size(); c++) {
+				// Check if current block is selected type, then check if it collides with wall or already placed block
+				// Uses the oldMap to find walls and old blocks before collision
+				if (map.get(r).get(c) == TileType.SELECTED && (oldMap.get(r).get(c) == TileType.WALL || oldMap.get(r).get(c) == TileType.BLOCK)) {
+					result = true;
+				}
+			}
+		}
+		
+		// Rotate block back to original state
 		for (int i = 0; i < 3; i++) {
 			blocks.peek().rotate();
 		}
 		
-		map = oldMap;
+		// Clone back map and colors to original arrays
+		map = clearMapAndClone(map, oldMap);
+		colors = clearMapAndClone(colors, oldColors);
 		
+		// Update map and colors back to original state
 		updateBlockOnMap();
 		
+		// True if collides, false if not collides
+		return result;
 		
-				return res;
+	}
+	
+	public <T> ArrayList<ArrayList<T>> clearMapAndClone(ArrayList<ArrayList<T>> oldMap,  ArrayList<ArrayList<T>> map) {
+		oldMap.clear();
 		
+		for(ArrayList<T> p : map) {
+		    oldMap.add((ArrayList<T>) p.clone());
+		}
+		return oldMap;
 	}
 
 	public ArrayList<String> checkAllCollisions() {
