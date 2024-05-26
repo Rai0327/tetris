@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -33,29 +34,57 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
 	boolean canHold = true;
 
+	// Map of tiles, represented as numbers (see TileType)
 	private ArrayList<ArrayList<Integer>> map = new ArrayList<>();
 
+	// Map of colors
 	private ArrayList<ArrayList<Color>> colors = new ArrayList<>();
 
-	private RenderMap renderer;
-
+	// Current tile, but "trimmed" into an ArrayList
+	// "Trimmed" means that if a row of a tile is 0, that row is removed
 	private ArrayList<ArrayList<Integer>> trimmedTile = new ArrayList<>();
 
-	private int count = 0;
+	// Renderer that renders the tiles (including walls)
+	private RenderMap renderer;
+
+	// Tick count for gravity
+	private int gravityTickCount = 0;
+	
+	// Count until block is respawned
 	private int touchCount = 0;
 
-	private int level = 29;
+	// Factor to tick gravity by
+	// Higher means slower gravity
+	// Lower means faster gravity
+	private int gravityFactor = 29;
 
+	// Score of game
 	private int score = 1;
 	
-	private int additionalScore = 0;
+	// If dead or not
+	private boolean isDead = false;
 	
+  // Threshold of score
 	private int threshold = 100;
-
+  
 	@Override
 	public void paint(Graphics g) {
+		
+		// Update block on map
+		updateBlockOnMap(false);
+
+		// Paint frame
 		super.paintComponent(g);
-			
+		
+		// Paint renderer
+		renderer.paint(g, colors);
+		
+		// Checking for death logic
+		if (blocks.peek().getPosition().y == 1 && checkBottomCollision()) {
+			death();
+			isDead = true;
+		}
+	
 		if (!isDead) {
 			
 			renderer.paint(g, colors);
@@ -64,33 +93,33 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			trimmedTile = getTrimmedTile();
 			
 			if (curr != null) {
+        
+			gravityTickCount++;
 
-				count++;
-	
-				if (curr.y >= map.size() - trimmedTile.size() - 1 || checkBottomCollision()) {
-					touchCount++;
-					if (touchCount == 30) {
-						score += additionalScore;
-						additionalScore = 0;
-						
-						oldBlocks.add(blocks.peek());
-						blocks.remove();
-						blocks.add(new Block((int) (Math.random() * 7) + 1));
-						blocks.peek().setPosition(new Point(width / 2 - 2, 1));
-						touchCount = 0;
-						canHold = true;
-					}
-	
+			if (curr.y >= map.size() - trimmedTile.size() - 1 || checkBottomCollision()) {
+				touchCount++;
+				if (touchCount == 30) {
+					
+					updateBlockOnMap(true);
+					
+					oldBlocks.add(blocks.peek());
+					blocks.remove();
+					blocks.add(new Block((int) (Math.random() * 7) + 1));
+					blocks.peek().setPosition(new Point(width / 2 - 2, 1));
+					touchCount = 0;
+					canHold = true;
 				}
-	
-				// implement gravity
-				if (count % level == 0 && !checkBottomCollision()) {
-					curr.y++;
-	
-					blocks.peek().setPosition(curr);
-	
-					while (curr.y >= map.size() - trimmedTile.size()) {
-						curr.y--;
+
+			}
+
+			// implement gravity
+			if (gravityTickCount % gravityFactor == 0 && !checkBottomCollision()) {
+				curr.y++;
+
+				blocks.peek().setPosition(curr);
+
+				while (curr.y >= map.size() - trimmedTile.size()) {
+					curr.y--;
 						blocks.peek().setPosition(curr);
 					}
 	
@@ -107,6 +136,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
 				g.drawString("Current Score: " + score, 325, 300);
 			}
+
+			score += removeIfCompleteRow();
+			
 		} else {
 			renderer.paintDeath(g);
 		}
@@ -124,13 +156,15 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		initMap();
 		
 		frame = new JFrame("Tetris Game");
-
 		try {
 			blocks.add(new Block((int) (Math.random() * 7) + 1));
 			blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 
 			trimmedTile = getTrimmedTile();
-			updateBlockOnMap();
+
+			initMap();
+			updateBlockOnMap(false);
+			
 			renderer = new RenderMap(new Point(0, 0), 30, map);
 		} catch (IOException e) {
 
@@ -228,9 +262,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 				blocks.peek().setPosition(current);
 
-				score += additionalScore;
-
-				additionalScore = 0;
+				updateBlockOnMap(true);
 				
 				oldBlocks.add(blocks.peek());
 				blocks.remove();
@@ -255,8 +287,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			}
 
 			if (e.getKeyCode() == 8) {
-			removeRowAtCoordinate(19+1);
+			removeRowAtCoordinate(17);
 			}
+			
 		}
 	}
 
@@ -324,10 +357,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	}
 
-	public void updateBlockOnMap() {
+	public void updateBlockOnMap(boolean permanent) {
 		if (!isDead) {
-			
-			initMap();
 			
 			Point p = blocks.peek().getPosition();
 
@@ -335,133 +366,194 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 			int trimmedWidth = trimmedTile.size();
 			int trimmedHeight = trimmedTile.get(0).size();
+			
 
-			if (p != null) {
-				if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
-						&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
-					for (int y = p.y; y < p.y + trimmedWidth; y++) {
-						for (int x = p.x; x < p.x + trimmedHeight; x++) {
-	
-							if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
-								map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
-	
-								colors.get(y).set(x, blocks.peek().getColor());
-	
+
+			for (int x = 0; x < width; x++) {
+				for (int y = 0; y < height; y++) {
+				
+					if (x == width-1 | y == height-1) {
+						map.get(y).set(x, TileType.WALL);
+					}
+					else if (map.get(y).get(x) == TileType.SELECTED) {
+						map.get(y).set(x, TileType.EMPTY);
+						
+					}
+				}
+			}
+			
+			
+			if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
+					&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
+				for (int y = p.y; y < p.y + trimmedWidth; y++) {
+					for (int x = p.x; x < p.x + trimmedHeight; x++) {
+						
+						if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
+							if (!permanent) {
+								map.get(y).set(x, trimmedTile.get(y-p.y).get(x-p.x));
+							} else {
+								map.get(y).set(x, TileType.BLOCK);
 							}
+
+							colors.get(y).set(x, blocks.peek().getColor());
+
 						}
 					}
 				}
 			}
 
-			for (Block tile : oldBlocks) {
-				if (tile != null) {
-					  if (!tile.isEmpty()) {
-						  p = tile.getPosition();
-				
-							if (p != null) {
-								System.out.println("p.y:" + p.y);
-								if (p.y <= 1) {
-									death();
-								}
-				
-								trimmedTile = tile.getTrimmedTile();
-								trimmedWidth = trimmedTile.size();
-								trimmedHeight = trimmedTile.get(0).size();
-								if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
-										&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
-									for (int y = p.y; y < p.y + trimmedWidth; y++) {
-										for (int x = p.x; x < p.x + trimmedHeight; x++) {
-				
-											if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
-				
-												map.get(y).set(x, trimmedTile.get(y - p.y).get(x - p.x));
-												colors.get(y).set(x, tile.getColor());
-											}
-										}
-									}
-								}
-							}
-					  }
+		}
+	}
+	
+	public void permanentlyDrawBlock() {
+		
+		if (!isDead) {
+			Point p = blocks.peek().getPosition();
+	
+			trimmedTile = getTrimmedTile();
+	
+			int trimmedWidth = trimmedTile.size();
+			int trimmedHeight = trimmedTile.get(0).size();
+	
+			for (int x = 1; x < width - 1; x++) {
+				for (int y = 1; y < height - 1; y++) {
+					if (x == width-1 | y == height-1) {
+						map.get(y).set(x, TileType.WALL);
+					}
+					else if (map.get(y).get(x) == TileType.SELECTED) {
+						map.get(y).set(x, TileType.EMPTY);
+						
+					}
+				}
+			}
+			
+			
+			if ((p.y >= 0 && p.y < map.size() - trimmedWidth + 1)
+					&& (p.x >= 0 && p.x < map.get(0).size() - trimmedHeight + 1)) {
+				for (int y = p.y; y < p.y + trimmedWidth; y++) {
+					for (int x = p.x; x < p.x + trimmedHeight; x++) {
+						
+						if (trimmedTile.get(y - p.y).get(x - p.x) != 0) {
+							map.get(y).set(x, TileType.BLOCK);
+	
+							colors.get(y).set(x, blocks.peek().getColor());
+	
+						}
+					}
 				}
 			}
 		}
 	}
 
-	boolean isDead = false;
-
 	public void death() { // death logic
-		isDead = true;
-		System.out.println("Score: " + score);
-		// Creating the main window of our application
-		frame = new JFrame();
+		
+		if (isDead != true) {
 
-		// Release the window and quit the application when it has been closed
-		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-
-		// Creating a button and setting its action
-		String name = JOptionPane.showInputDialog(null,
-				"You Died! Your score is: " + score + ". \nPlease enter your name to save your score.", "Tetris",
-				JOptionPane.PLAIN_MESSAGE);
-		name = name.replaceAll("\\s+","");
-		store.addScore(score, name);
-
-		Score highest = store.getHighestScore();
-		Score lowest = store.getLowestScore();
-
-		JOptionPane.showMessageDialog(null,
-				"Your score has been saved. The highest score is " + highest.getName() + " with a score of "
-						+ highest.getScore() + "! The lowest score is " + lowest.getName() + " with a score of "
-						+ lowest.getScore() + "!",
-				"Tetris", JOptionPane.INFORMATION_MESSAGE);
-
-		System.exit(-1);
+			isDead = true;
+			System.out.println("Score: " + score);
+			// Creating the main window of our application
+			frame = new JFrame();
+	
+			// Release the window and quit the application when it has been closed
+			frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+	
+			// Creating a button and setting its action
+			String name = JOptionPane.showInputDialog(null,
+					"You Died! Your score is: " + score + ". \nPlease enter your name to save your score.", "Tetris",
+					JOptionPane.PLAIN_MESSAGE);
+			name = name.replaceAll("\\s+","");
+			store.addScore(score, name);
+	
+			Score highest = store.getHighestScore();
+			Score lowest = store.getLowestScore();
+	
+			JOptionPane.showMessageDialog(null,
+					"Your score has been saved. The highest score is " + highest.getName() + " with a score of "
+							+ highest.getScore() + "! The lowest score is " + lowest.getName() + " with a score of "
+							+ lowest.getScore() + "!",
+					"Tetris", JOptionPane.INFORMATION_MESSAGE);
+	
+			System.exit(-1);
+			
+		}
 	}
 
 	public boolean checkLeftCollision() {
-		if (checkAllCollisions().get(0).equals("left")) {
-			return true;
-		}
-		return false;
+		return checkAllCollisions().get(0).equals("left");
 	}
 
 	public boolean checkRightCollision() {
-		if (checkAllCollisions().get(1).equals("right")) {
-			return true;
-		}
-		return false;
+		return checkAllCollisions().get(1).equals("right");
 	}
 
 	public boolean checkBottomCollision() {
-		if (checkAllCollisions().get(2).equals("bottom")) {
-			return true;
-		}
-		return false;
+		return checkAllCollisions().get(2).equals("bottom");
 	}
 
 	public boolean checkTopCollision() {
-		if (checkAllCollisions().get(3).equals("top")) {
-			return true;
-		}
-		return false;
+		return checkAllCollisions().get(3).equals("top");
 	}
 
 	public boolean checkCollisionsForRotation() {
+
+		// Create variables representing old map
+		ArrayList<ArrayList<Integer>> oldMap =  new ArrayList<ArrayList<Integer>>();
+		ArrayList<ArrayList<Color>> oldColors = new ArrayList<ArrayList<Color>>();
 		
+		// Deep copies existing map as an "old" map
+		oldMap = clearMapAndClone(oldMap, map);
+		oldColors = clearMapAndClone(oldColors, colors);
+		
+		// Rotates current block
 		blocks.peek().rotate();
 		
-		updateBlockOnMap();
+		// Updates map to new state
+		updateBlockOnMap(false);
 		
-		boolean res = checkTopCollision() | checkBottomCollision();
+		// Check if any block collides with wall or already placed block
+		boolean result = false;
 		
+		for (int r = 0; r < oldMap.size(); r++) {
+			for (int c = 0; c < oldMap.get(r).size(); c++) {
+				// Check if current block is selected type, then check if it collides with wall or already placed block
+				// Uses the oldMap to find walls and old blocks before collision
+				if (map.get(r).get(c) == TileType.SELECTED && (oldMap.get(r).get(c) == TileType.WALL || oldMap.get(r).get(c) == TileType.BLOCK)) {
+					result = true;
+				}
+			}
+		}
+		
+		// Rotate block back to original state
 		for (int i = 0; i < 3; i++) {
 			blocks.peek().rotate();
 		}
 		
-		updateBlockOnMap();
+		// Clone back map and colors to original arrays
+		map = clearMapAndClone(map, oldMap);
+		colors = clearMapAndClone(colors, oldColors);
 		
+		// Update map and colors back to original state
+		updateBlockOnMap(false);
 		
-				return res;
+		// True if collides, false if not collides
+		return result;
 		
+	}
+	
+	/**
+	 * Deep clone a 2D array (map)
+	 * @param <T> Type parameter T
+	 * @param prevMap Previous map
+	 * @param currentMap Current map
+	 * @return prevMap Data from current map is cloned to previous map
+	 */
+	public <T> ArrayList<ArrayList<T>> clearMapAndClone(ArrayList<ArrayList<T>> prevMap,  ArrayList<ArrayList<T>> currentMap) {
+		prevMap.clear();
+		
+		for(ArrayList<T> arr : currentMap) {
+		    prevMap.add((ArrayList<T>) arr.clone());
+		}
+		return prevMap;
 	}
 
 	public ArrayList<String> checkAllCollisions() {
@@ -477,6 +569,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 		ArrayList<Point> topCandidates = new ArrayList<>();
 
+		// List of restrictions, i.e. left, right, top, bottom
 		ArrayList<String> restrictions = new ArrayList<>();
 
 		restrictions.add("");
@@ -556,50 +649,50 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					}
 				}
 			}
-	
-			for (Point point : leftCandidates) {
-				if (0 <= point.y && point.y < height) {
-					if (0 <= point.x && point.x < width) {
-						if (map.get(point.y).get(point.x) == TileType.BLOCK
-								| map.get(point.y).get(point.x) == TileType.WALL) {
-							restrictions.set(0, "left");
-						}
+		}
+
+		for (Point point : leftCandidates) {
+			if (0 <= point.y && point.y < height) {
+				if (0 <= point.x && point.x < width) {
+					if (map.get(point.y).get(point.x) == TileType.BLOCK | map.get(point.y).get(point.x) == TileType.SELECTED
+							| map.get(point.y).get(point.x) == TileType.WALL) {
+						restrictions.set(0, "left");
 					}
 				}
 			}
-	
-			for (Point point : rightCandidates) {
-	
-				if (0 <= point.y && point.y < height) {
-					if (0 <= point.x && point.x < width) {
-						if (map.get(point.y).get(point.x) == TileType.BLOCK
-								| map.get(point.y).get(point.x) == TileType.WALL) {
-							restrictions.set(1, "right");
-						}
+		}
+
+		for (Point point : rightCandidates) {
+
+			if (0 <= point.y && point.y < height) {
+				if (0 <= point.x && point.x < width) {
+					if (map.get(point.y).get(point.x) == TileType.BLOCK |  map.get(point.y).get(point.x) == TileType.SELECTED
+							| map.get(point.y).get(point.x) == TileType.WALL) {
+						restrictions.set(1, "right");
 					}
 				}
 			}
-	
-			for (Point point : bottomCandidates) {
-	
-				if (0 <= point.y && point.y < height) {
-					if (0 <= point.x && point.x < width) {
-						if (map.get(point.y).get(point.x) == TileType.BLOCK
-								| map.get(point.y).get(point.x) == TileType.WALL) {
-							restrictions.set(2, "bottom");
-						}
+		}
+
+		for (Point point : bottomCandidates) {
+
+			if (0 <= point.y && point.y < height) {
+				if (0 <= point.x && point.x < width) {
+					if (map.get(point.y).get(point.x) == TileType.BLOCK |  map.get(point.y).get(point.x) == TileType.SELECTED
+							| map.get(point.y).get(point.x) == TileType.WALL) {
+						restrictions.set(2, "bottom");
 					}
 				}
 			}
-	
-			for (Point point : topCandidates) {
-	
-				if (0 <= point.y && point.y < height) {
-					if (0 <= point.x && point.x < width) {
-						if (map.get(point.y).get(point.x) == TileType.BLOCK
-								| map.get(point.y).get(point.x) == TileType.WALL) {
-							restrictions.set(3, "top");
-						}
+		}
+
+		for (Point point : topCandidates) {
+
+			if (0 <= point.y && point.y < height) {
+				if (0 <= point.x && point.x < width) {
+					if (map.get(point.y).get(point.x) == TileType.BLOCK | map.get(point.y).get(point.x) == TileType.SELECTED
+							| map.get(point.y).get(point.x) == TileType.WALL) {
+						restrictions.set(3, "top");
 					}
 				}
 			}
@@ -609,82 +702,78 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	}
 	
+	/**
+	 * Removes row at coordinate r
+	 * @param r Coordinate of row
+	 */
 	public void removeRowAtCoordinate(int r) {
+		// Remove at coordinate r
+		map.remove(r);
+		colors.remove(r);
 		
-		ArrayList<Block> blockArray = new ArrayList<Block>(blocks);
+		// Create new ArrayList to append back at beginning
+		ArrayList<Color> newColors = new ArrayList<Color>();
+		ArrayList<Integer> newRow = new ArrayList<Integer>();
 		
-		ArrayList<Block> oldBlockArray = new ArrayList<Block>(oldBlocks);
+		// Add wall at beginning of list
+		newRow.add(TileType.WALL);
+		newColors.add(new Color(0, 0, 0));
 		
-		blockArray.addAll(oldBlockArray);
-		
-		
-		
-		for (Block b : blockArray) {
-			
-
-			if (b.isEmpty()) {
-				blocks.remove(b);
-			}
-			
-
-			//System.out.println("R: " + r + );
-			
-			
-			if (b.getPosition() != null) {
-				if (r > b.getPosition().y && r < b.getPosition().y+b.getTrimmedTile().size()-1) {
-					int row = r-b.getPosition().y;
-					System.out.println("REmoved at" + row);
-					b.removeRow(row);
-				}	
-			}
-			
+		// Add empty spaces in middle
+		for (int c = 1; c < map.get(r).size()-1; c++) {
+			newRow.add(TileType.EMPTY);
+			newColors.add(new Color(0, 0, 0));
 		}
 		
-		for (Block b : blockArray) {
-			if (b.getPosition() != null) {
-				if (b.getPosition().y <= r && !(b.equals(blocks.peek()))) {
-					b.getPosition().y++;
-				}
-			}
-		}
+		// Add wall at end of list
+		newRow.add(TileType.WALL);
+		newColors.add(0, new Color(0, 0, 0));
+
 		
-		blocks.remove();
-		blocks.add(blockArray.get(0));
+		// Add row to the beginning of the map
+		map.add(1, newRow);
+		colors.add(1, newColors);
 		
-		blockArray.remove(0);
-		
-		oldBlocks.clear();
-		oldBlocks.addAll(blockArray);
-		
-		updateBlockOnMap();
+		// Update map
+		updateBlockOnMap(false);
 		
 	}
 	
+	/**
+	 * Removes rows if complete, returns score
+	 * @return score - number of rows removed
+	 */
 	public int removeIfCompleteRow() {
+		// Counts number of completed rows
 		int count = 0;
 		
 		for (int r = 1; r < map.size()-1; r++) {
-			boolean rowIsSame =  true;
-			for (int c = 1; c < map.get(0).size()-2; c++) {
-
-				if ((map.get(r).get(c) != 2 | map.get(r).get(c+1) != 2))  {
-						rowIsSame = false;
-						break;
-					
-				}
+			
+			// Sum variable
+			int sum = 0;
+			
+			// Sums row
+			for (int c = 1; c < map.get(0).size()-1; c++) {
+				sum += map.get(r).get(c);
 			}
 			
-			if (rowIsSame) {
-				removeRowAtCoordinate(r+3);
+			// If sum is entirely BLOCK, then remove row
+			// Prevents removal of row when SELECTED block travels through
+			if (sum == (width-2)*TileType.BLOCK) {
+				removeRowAtCoordinate(r);
+				// Success! Increment count by 1
+				count++;
 			}
-			
-			count++;
 			
 		}
 		
 		return count;
 	}
 	
+	/**
+	 * Returns the current tile, but trimmed so that no row is entirely empty
+	 * @return trimmedTile - 2D array of trimmed tile
+	 */
 	public ArrayList<ArrayList<Integer>> getTrimmedTile() {
 		if (blocks.peek().isEmpty()) {
 			blocks.remove();

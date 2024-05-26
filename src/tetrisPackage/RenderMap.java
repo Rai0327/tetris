@@ -23,7 +23,6 @@ public class RenderMap {
 	// https://stackoverflow.com/questions/15327220/fill-rectangle-with-pattern-in-java-swing
 	
 	ArrayList<ArrayList<Integer>> map = new ArrayList<ArrayList<Integer>>();
-	ArrayList<ArrayList<Integer>> oldMap = new ArrayList<ArrayList<Integer>>();
 
 	int sX = 0;
 	int sY = 0;
@@ -48,10 +47,11 @@ public class RenderMap {
 		image.add(ImageIO.read(new File("bg0.jpeg")));
 		image.add(ImageIO.read(new File("bg1.jpeg")));
 		image.add(ImageIO.read(new File("bg2.png")));
+
+		image.add(ImageIO.read(new File("bg2.png")));
 		
 		bufferedImage = new BufferedImage(rectWidth*map.get(0).size(), rectWidth*map.size(), BufferedImage.TYPE_INT_ARGB);
 		
-		oldMap = (ArrayList<ArrayList<Integer>>) map.clone();
 		
 		
 	}
@@ -64,16 +64,14 @@ public class RenderMap {
 			for (int x = 0; x < map.get(y).size(); x++) {
 				
 				Integer tile = map.get(y).get(x);
-				
-				if ((oldMap.get(y).get(x) != (map.get(y).get(x))) | initialDraw | tile == TileType.BLOCK) {
-					
+							
 					BufferedImage buffer;
 					
 					if (y == map.size()-1) {
 
 						buffer = image.get(TileType.WALL);
 					}
-					else if (tile == 2) {
+					else if (tile == 2 | tile == 3) {
 						buffer = changeColor(image.get(tile), colors.get(y).get(x));
 					}
 					else {
@@ -85,12 +83,10 @@ public class RenderMap {
 					TexturePaint text = new TexturePaint(buffer, rect);
 					g2.setPaint(text);
 					g2.fill(rect);
-				}
 			
 			}
 		}
 		
-		oldMap = (ArrayList<ArrayList<Integer>>) map.clone();
 	    initialDraw = false;
 	}
 	
@@ -134,6 +130,9 @@ public class RenderMap {
 		 return new BufferedImage(model, raster, isAlphaPremultiplied, null);
 	}
 	
+	public void setMap(ArrayList<ArrayList<Integer>> m) {
+		this.map = m;
+	}
 	
 	
 	
