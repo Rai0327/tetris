@@ -2,6 +2,7 @@ package tetrisPackage;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Queue;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -25,9 +27,12 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	private Queue<Block> blocks = new LinkedList<>();
 	private ArrayList<Block> oldBlocks = new ArrayList<>();
+	private Queue<Block> hold = new LinkedList<>();
 
 	private int width = 10;
 	private int height = 20;
+	
+	boolean canHold = true;
 
 	// Map of tiles, represented as numbers (see TileType)
 	private ArrayList<ArrayList<Integer>> map = new ArrayList<>();
@@ -54,11 +59,14 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	private int gravityFactor = 29;
 
 	// Score of game
-	private int score = 0;
+	private int score = 1;
 	
 	// If dead or not
 	private boolean isDead = false;
-
+	
+  // Threshold of score
+	private int threshold = 100;
+  
 	@Override
 	public void paint(Graphics g) {
 		
@@ -78,10 +86,14 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		}
 	
 		if (!isDead) {
+			
+			renderer.paint(g, colors);
 
 			Point curr = blocks.peek().getPosition();
 			trimmedTile = getTrimmedTile();
-
+			
+			if (curr != null) {
+        
 			gravityTickCount++;
 
 			if (curr.y >= map.size() - trimmedTile.size() - 1 || checkBottomCollision()) {
@@ -95,6 +107,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					blocks.add(new Block((int) (Math.random() * 7) + 1));
 					blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 					touchCount = 0;
+					canHold = true;
 				}
 
 			}
@@ -107,13 +120,27 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 				while (curr.y >= map.size() - trimmedTile.size()) {
 					curr.y--;
-					blocks.peek().setPosition(curr);
+						blocks.peek().setPosition(curr);
+					}
+	
 				}
-
+				if (score > threshold && level != 1) {
+					level--;
+					threshold += 100;
+				}
+	
+				updateBlockOnMap();
+				
+				additionalScore = removeIfCompleteRow();
+				
+				g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
+				g.drawString("Current Score: " + score, 325, 300);
 			}
 
 			score += removeIfCompleteRow();
 			
+		} else {
+			renderer.paintDeath(g);
 		}
 	}
 
@@ -126,6 +153,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	public Frame() {
 
+		initMap();
+		
+		frame = new JFrame("Tetris Game");
 		try {
 			blocks.add(new Block((int) (Math.random() * 7) + 1));
 			blocks.peek().setPosition(new Point(width / 2 - 2, 1));
@@ -141,7 +171,6 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			System.out.println("Something went wrong.");
 		}
 
-		frame = new JFrame("Tetris Game");
 		frame.setSize(new Dimension(900, 900));
 		frame.setBackground(Color.blue);
 		frame.addKeyListener(this);
@@ -165,6 +194,12 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			trimmedTile = getTrimmedTile();
 
 			Point current = blocks.peek().getPosition();
+			
+			if (current == null) {
+				blocks.add(new Block((int) (Math.random() * 7) + 1));
+				blocks.peek().setPosition(new Point(width / 2 - 2, 1));
+				current = blocks.peek().getPosition();
+			}
 
 			if ((e.getKeyCode() == 87 || e.getKeyCode() == 38)) {
 
@@ -234,8 +269,22 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				blocks.add(new Block((int) (Math.random() * 7) + 1));
 				blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 				touchCount = 0;
+				canHold = true;
 			}
 			
+			if (e.getKeyCode() == 67 && canHold) {
+				hold.add(blocks.peek());
+				if (hold.size() == 1) {
+					blocks.remove();
+				} else {
+					setFirstElement(blocks, hold.remove());
+				}
+				hold.peek().reset();
+				blocks.add(new Block((int) (Math.random() * 7) + 1));
+				blocks.peek().setPosition(new Point(width / 2 - 2, 1));
+				touchCount = 0;
+				canHold = false;
+			}
 
 			if (e.getKeyCode() == 8) {
 			removeRowAtCoordinate(17);
@@ -529,71 +578,73 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		restrictions.add("");
 
 		// Add candidates from left
-		for (int r = 0; r < trimmedTile.size(); r++) {
-			for (int c = 0; c < trimmedTile.get(r).size(); c++) {
-
-				int x = p.x + c - 1;
-				int y = p.y + r;
-
-				if (0 <= y && x < height) {
-					if (0 <= y && x < width) {
-						if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-							leftCandidates.add(new Point(x, y));
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		// Add candidates from right
-		for (int r = trimmedTile.size() - 1; r >= 0; r--) {
-			for (int c = trimmedTile.get(r).size() - 1; c >= 0; c--) {
-
-				int x = p.x + c + 1;
-				int y = p.y + r;
-
-				if (0 <= y && x < height) {
-					if (0 <= y && x < width) {
-
-						if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-							rightCandidates.add(new Point(p.x + c + 1, p.y + r));
-							break;
-						}
-
-					}
-				}
-			}
-		}
-
-		// Add candidates from bottom
-		for (int c = trimmedTile.get(0).size() - 1; c >= 0; c--) {
-			for (int r = trimmedTile.size() - 1; r >= 0; r--) {
-
-				int x = p.x + c;
-				int y = p.y + r + 1;
-				if (0 <= y && x < height) {
-					if (0 <= y && x < width) {
-						if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-							bottomCandidates.add(new Point(x, y));
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		// Add candidates from top
-		for (int c = 0; c < trimmedTile.get(0).size(); c++) {
+		if (p!= null) {
 			for (int r = 0; r < trimmedTile.size(); r++) {
-				int x = p.x + c;
-				int y = p.y + r - 1;
-
-				if (0 <= y && x < height) {
-					if (0 <= y && x < width) {
-						if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
-							topCandidates.add(new Point(x, y));
-							break;
+				for (int c = 0; c < trimmedTile.get(r).size(); c++) {
+	
+					int x = p.x + c - 1;
+					int y = p.y + r;
+	
+					if (0 <= y && x < height) {
+						if (0 <= y && x < width) {
+							if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+								leftCandidates.add(new Point(x, y));
+								break;
+							}
+						}
+					}
+				}
+			}
+	
+			// Add candidates from right
+			for (int r = trimmedTile.size() - 1; r >= 0; r--) {
+				for (int c = trimmedTile.get(r).size() - 1; c >= 0; c--) {
+	
+					int x = p.x + c + 1;
+					int y = p.y + r;
+	
+					if (0 <= y && x < height) {
+						if (0 <= y && x < width) {
+	
+							if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+								rightCandidates.add(new Point(p.x + c + 1, p.y + r));
+								break;
+							}
+	
+						}
+					}
+				}
+			}
+	
+			// Add candidates from bottom
+			for (int c = trimmedTile.get(0).size() - 1; c >= 0; c--) {
+				for (int r = trimmedTile.size() - 1; r >= 0; r--) {
+	
+					int x = p.x + c;
+					int y = p.y + r + 1;
+					if (0 <= y && x < height) {
+						if (0 <= y && x < width) {
+							if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+								bottomCandidates.add(new Point(x, y));
+								break;
+							}
+						}
+					}
+				}
+			}
+	
+			// Add candidates from top
+			for (int c = 0; c < trimmedTile.get(0).size(); c++) {
+				for (int r = 0; r < trimmedTile.size(); r++) {
+					int x = p.x + c;
+					int y = p.y + r - 1;
+	
+					if (0 <= y && x < height) {
+						if (0 <= y && x < width) {
+							if (trimmedTile.get(r).get(c) != TileType.EMPTY) {
+								topCandidates.add(new Point(x, y));
+								break;
+							}
 						}
 					}
 				}
@@ -672,12 +723,12 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		for (int c = 1; c < map.get(r).size()-1; c++) {
 			newRow.add(TileType.EMPTY);
 			newColors.add(new Color(0, 0, 0));
-
 		}
 		
 		// Add wall at end of list
 		newRow.add(TileType.WALL);
 		newColors.add(0, new Color(0, 0, 0));
+
 		
 		// Add row to the beginning of the map
 		map.add(1, newRow);
@@ -734,6 +785,18 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			return blocks.peek().getTrimmedTile();
 		}
 		
+	}
+	
+	public void setFirstElement(Queue<Block> q, Block b) {
+		Queue<Block> temp = new LinkedList<>();
+		temp.add(b);
+		q.remove();
+		while (!q.isEmpty()) {
+			temp.add(q.remove());
+		}
+		while (!temp.isEmpty()) {
+			q.add(temp.remove());
+		}
 	}
 
 }

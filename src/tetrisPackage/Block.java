@@ -12,6 +12,7 @@ public class Block {
 	private Color color;
 	
 	private ArrayList<Integer> removedRows = new ArrayList<Integer>();
+	private int[][] init = new int[4][4];
 	
 	public Block(int piece) {
 		if (piece == 1) { //Line block
@@ -59,6 +60,12 @@ public class Block {
 		}
 		
 		color = randomColor();
+		
+		for (int r = 0; r < tile.length; r++) {
+			for (int c = 0; c < tile[r].length; c++) {
+				init[r][c] = tile[r][c];
+			}
+		}
 	}
 	
 	public void rotate() {
@@ -194,4 +201,12 @@ public class Block {
 		return !isNotEmpty;
 	}
 	
+	public void reset() {
+		for (int r = 0; r < tile.length; r++) {
+			for (int c = 0; c < tile[r].length; c++) {
+				tile[r][c] = init[r][c];
+			}
+		}
+	}
+  
 }
