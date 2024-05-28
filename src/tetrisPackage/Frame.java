@@ -428,17 +428,19 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			String name = JOptionPane.showInputDialog(null,
 					"You Died! Your score is: " + score + ". \nPlease enter your name to save your score.", "Tetris",
 					JOptionPane.PLAIN_MESSAGE);
-			name = name.replaceAll("\\s+","");
-			store.addScore(score, name);
-	
-			Score highest = store.getHighestScore();
-			Score lowest = store.getLowestScore();
-	
-			JOptionPane.showMessageDialog(null,
-					"Your score has been saved. The highest score is " + highest.getName() + " with a score of "
-							+ highest.getScore() + "! The lowest score is " + lowest.getName() + " with a score of "
-							+ lowest.getScore() + "!",
-					"Tetris", JOptionPane.INFORMATION_MESSAGE);
+			if (name != null) {
+				name = name.replaceAll("\\s+","");
+				store.addScore(score, name);
+		
+				Score highest = store.getHighestScore();
+				Score lowest = store.getLowestScore();
+		
+				JOptionPane.showMessageDialog(null,
+						"Your score has been saved. The highest score is " + highest.getName() + " with a score of "
+								+ highest.getScore() + "! The lowest score is " + lowest.getName() + " with a score of "
+								+ lowest.getScore() + "!",
+						"Tetris", JOptionPane.INFORMATION_MESSAGE);
+			}
 	
 			System.exit(-1);
 			
