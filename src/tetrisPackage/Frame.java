@@ -16,6 +16,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -142,14 +144,15 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		}
 	}
 
-	public static void main(String[] arg) {
+	public static void main(String[] arg) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
 		Frame f = new Frame();
 	}
 
 	JFrame frame;
 	Store store;
-
-	public Frame() {
+	SimpleAudioPlayer audioPlayer;
+	
+	public Frame() throws UnsupportedAudioFileException, IOException, LineUnavailableException {
 
 		initMap();
 		
@@ -183,6 +186,14 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		frame.setVisible(true);
 
 		store = new Store();
+		
+		try {
+			audioPlayer = new SimpleAudioPlayer(); 
+	  
+			audioPlayer.play();
+		} catch(Error e) {
+			System.out.println("error with music");
+		}
 	}
 
 	@Override
@@ -400,8 +411,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	}
 
 	public void death() { // death logic
-		
 		if (isDead != true) {
+			
+			audioPlayer.stop();
 
 			isDead = true;
 			System.out.println("Score: " + score);
