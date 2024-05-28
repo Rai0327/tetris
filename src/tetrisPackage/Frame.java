@@ -79,7 +79,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		super.paintComponent(g);
 		
 		// Paint renderer
-		renderer.paint(g, colors);
+		renderer.paint(g, colors, getNext(blocks), hold.peek());
 		
 		// Checking for death logic
 		if (blocks.peek().getPosition().y == 1 && checkBottomCollision()) {
@@ -89,7 +89,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
 		if (!isDead) {
 			
-			renderer.paint(g, colors);
+			renderer.paint(g, colors, getNext(blocks), hold.peek());
 
 			Point curr = blocks.peek().getPosition();
 			trimmedTile = getTrimmedTile();
@@ -134,7 +134,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 				updateBlockOnMap(false);
 				
 				g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
-				g.drawString("Current Score: " + score, 325, 300);
+				g.drawString("Current Score: " + score, 325, 50);
 			}
 
 			score += removeIfCompleteRow();
@@ -159,6 +159,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		frame = new JFrame("Tetris Game");
 		try {
 			blocks.add(new Block((int) (Math.random() * 7) + 1));
+			blocks.add(new Block((int) (Math.random() * 7) + 1));
 			blocks.peek().setPosition(new Point(width / 2 - 2, 1));
 
 			trimmedTile = getTrimmedTile();
@@ -166,7 +167,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			initMap();
 			updateBlockOnMap(false);
 			
-			renderer = new RenderMap(new Point(0, 0), 30, map);
+			renderer = new RenderMap(new Point(0, 0), 30, map, getNext(blocks));
 		} catch (IOException e) {
 
 			System.out.println("Something went wrong.");
@@ -765,6 +766,17 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		while (!temp.isEmpty()) {
 			q.add(temp.remove());
 		}
+	}
+	
+	public Block getNext(Queue<Block> q) {
+		int count = 0;
+		for (Block el : q) {
+			if (count != 0) {
+				return el;
+			}
+			count++;
+		}
+		return null;
 	}
 
 }
