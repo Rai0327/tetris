@@ -23,6 +23,13 @@ public class RenderMap {
 	// https://stackoverflow.com/questions/15327220/fill-rectangle-with-pattern-in-java-swing
 	
 	ArrayList<ArrayList<Integer>> map = new ArrayList<ArrayList<Integer>>();
+	
+	//next block code
+	ArrayList<ArrayList<Integer>> next;
+	Color nextColor;
+	
+	ArrayList<ArrayList<Integer>> hold;
+	Color holdColor;
 
 	int sX = 0;
 	int sY = 0;
@@ -34,7 +41,11 @@ public class RenderMap {
 	
 	private BufferedImage bufferedImage;
 	
-	public RenderMap(Point startPos, int rectWidth, ArrayList<ArrayList<Integer>> map) throws IOException {
+	private BufferedImage nextImage;
+	
+	private BufferedImage holdImage;
+	
+	public RenderMap(Point startPos, int rectWidth, ArrayList<ArrayList<Integer>> map, Block nextB) throws IOException {
 		
 		sX = startPos.x;
 		sY = startPos.y;
@@ -43,6 +54,8 @@ public class RenderMap {
 		rW = rectWidth;
 		
 		this.map = map;
+		next = nextB.getTrimmedTile();
+		nextColor = nextB.getColor();
 		
 		image.add(ImageIO.read(new File("bg0.jpeg")));
 		image.add(ImageIO.read(new File("bg1.jpeg")));
@@ -52,7 +65,7 @@ public class RenderMap {
 		
 		bufferedImage = new BufferedImage(rectWidth*map.get(0).size(), rectWidth*map.size(), BufferedImage.TYPE_INT_ARGB);
 		
-		
+		nextImage = new BufferedImage(rectWidth*next.get(0).size(), rectWidth*next.size(), BufferedImage.TYPE_INT_ARGB);
 		
 	}
 	
@@ -87,18 +100,63 @@ public class RenderMap {
 			}
 		}
 		
+		
 	    initialDraw = false;
 	}
 	
-	public void paint(Graphics g, ArrayList<ArrayList<Color>> colors) {
+	public void paintBlock(ArrayList<ArrayList<Color>> colors, ArrayList<ArrayList<Integer>> arr, BufferedImage im, Color c) {
+		Graphics2D g3 = im.createGraphics();
+		
+		for (int y = 0; y < arr.size(); y++) {
+			for (int x = 0; x < arr.get(0).size(); x++) {
+				Integer tile = arr.get(y).get(x);
+				BufferedImage buffer;
+				
+				if (tile == 0) {
+					buffer = changeColor(image.get(tile), new Color(255, 255, 255));
+				} else {
+					buffer = changeColor(image.get(tile), c);
+				}
+				
+				Rectangle rect = new Rectangle(sY+x*rW, sX+y*rW, rW, rW);
+				TexturePaint text = new TexturePaint(buffer, rect);
+				g3.setPaint(text);
+				g3.fill(rect);
+			}
+		}
+	}
+	
+	public void paint(Graphics g, ArrayList<ArrayList<Color>> colors, Block nextB, Block holdB) {
 		Graphics2D g2 = (Graphics2D)g;
+		Graphics2D g3 = (Graphics2D)g;
+		
+		next = nextB.getTrimmedTile();
+		nextColor = nextB.getColor();
+		nextImage = new BufferedImage(rW*next.get(0).size(), rW*next.size(), BufferedImage.TYPE_INT_ARGB);
+		
+		g.setFont(new Font("Calibri", Font.PLAIN, 25)); 
+		g.drawString("Next Block:", 325, 100);
+		
+		g.setFont(new Font("Calibri", Font.PLAIN, 25)); 
+		g.drawString("Hold Block:", 325, 225);
 		
 	    if (bufferedImage != null) {
 
 		    paintShape(colors);
 	        g2.drawImage(bufferedImage, 0, 0, null);
 	     }
-				
+	    if (nextImage != null) {
+	    	paintBlock(colors, next, nextImage, nextColor);
+	    	g3.drawImage(nextImage, rW*map.get(0).size() + 25, 125, null);
+	    }
+	    if (holdB != null) {
+	    	g3 = (Graphics2D)g;
+	    	hold = holdB.getTrimmedTile();
+			holdColor = holdB.getColor();
+			holdImage = new BufferedImage(rW*hold.get(0).size(), rW*hold.size(), BufferedImage.TYPE_INT_ARGB);
+			paintBlock(colors, hold, holdImage, holdColor);
+	    	g3.drawImage(holdImage, rW*map.get(0).size() + 25, 250, null);
+	    }
 	}
 	
 	public void paintDeath(Graphics g) {
