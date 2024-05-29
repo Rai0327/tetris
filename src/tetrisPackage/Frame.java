@@ -108,7 +108,11 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		
 		// Checking for death logic
 		if (blocks.peek().getPosition().y == 1 && checkBottomCollision()) {
-			death();
+			try {
+				death();
+			} catch (NullPointerException e) {
+				System.exit(-1);
+			} 
 			isDead = true;
 		}
 	
@@ -176,7 +180,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	JFrame frame;
 	Store store;
-	//SimpleAudioPlayer audioPlayer;
+	SimpleAudioPlayer audioPlayer;
 	
 	public Frame() throws UnsupportedAudioFileException, IOException, LineUnavailableException {
 
@@ -261,9 +265,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		store = new Store();
 		
 		try {
-			// audioPlayer = new SimpleAudioPlayer(); 
+			 audioPlayer = new SimpleAudioPlayer(); 
 	  
-			// audioPlayer.play();
+			 audioPlayer.play();
 		} catch(Error e) {
 			System.out.println("error with music");
 		}
@@ -521,7 +525,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	public void death() { // death logic
 		if (isDead != true) {
 			
-			// audioPlayer.stop();
+			 audioPlayer.stop();
 
 			isDead = true;
 			System.out.println("Score: " + score);
@@ -529,13 +533,23 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			frame = new JFrame();
 	
 			// Release the window and quit the application when it has been closed
-			frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+			frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	
 			// Creating a button and setting its action
-			String name = JOptionPane.showInputDialog(null,
+			String name = "";
+			name = JOptionPane.showInputDialog(null,
 					"You Died! Your score is: " + score + ". \nPlease enter your name to save your score.", "Tetris",
 					JOptionPane.PLAIN_MESSAGE);
 			if (name != null) {
+				name = name.replaceAll("\\s+","");
+				while (name.length() == 0 ) {
+					name = JOptionPane.showInputDialog(null,
+							"Please enter a valid name to save your score.", "Tetris",
+							JOptionPane.PLAIN_MESSAGE);
+					if (name != null) {
+						name = name.replaceAll("\\s+","");
+					}
+				}
 				name = name.replaceAll("\\s+","");
 				store.addScore(score, name);
 		
