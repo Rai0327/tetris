@@ -177,10 +177,10 @@ public class Block {
 		ArrayList<Integer> randoms = new ArrayList<Integer>();
 		
 		for (int i = 0; i < 3; i++) {
-			randoms.add((int)(Math.random()*255.0) +0 );
+			randoms.add((int)(Math.random()*255) + 0);
 		}
 		
-		return new Color(randoms.get(0), randoms.get(1), randoms.get(2), 128);
+		return new Color(randoms.get(0), randoms.get(1), randoms.get(2), 120);
 	}
 	
 	public Color getColor() {

@@ -1,8 +1,10 @@
 package tetrisPackage;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -10,20 +12,26 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.io.File;
 import java.util.Queue;
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
+import javax.swing.filechooser.FileSystemView;
 
 public class Frame extends JPanel implements KeyListener, ActionListener {
 
@@ -34,7 +42,11 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	private int width = 10;
 	private int height = 20;
 	
+	private FileManager fManager = new FileManager();
+	
 	boolean canHold = true;
+	
+	private Dimension saveButtonSize = new Dimension(400, 100);
 
 	// Map of tiles, represented as numbers (see TileType)
 	private ArrayList<ArrayList<Integer>> map = new ArrayList<>();
@@ -66,8 +78,21 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	// If dead or not
 	private boolean isDead = false;
 	
+	// If paused or not
+	private boolean isPaused = false;
+	
 	// Threshold of score
 	private int threshold = 100;
+	
+	// Background color
+	private Color bgColor = new Color(96, 204, 175);
+	
+	// Button color
+	private Color buttonColor = new Color(19, 135, 104);
+	
+	private Font customFont;
+	
+	JPanel mainPanel = new JPanel();
   
 	@Override
 	public void paint(Graphics g) {
@@ -87,7 +112,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			isDead = true;
 		}
 	
-		if (!isDead) {
+		if (!isDead | !isPaused) {
 			
 			renderer.paint(g, colors, getNext(blocks), hold.peek());
 
@@ -133,7 +158,8 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	
 				updateBlockOnMap(false);
 				
-				g.setFont(new Font("Calibri", Font.PLAIN, 50)); 
+				customFont = customFont.deriveFont(40f);
+				g.setFont(customFont); 
 				g.drawString("Current Score: " + score, 325, 50);
 			}
 
@@ -150,14 +176,34 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	JFrame frame;
 	Store store;
-	SimpleAudioPlayer audioPlayer;
+	//SimpleAudioPlayer audioPlayer;
 	
 	public Frame() throws UnsupportedAudioFileException, IOException, LineUnavailableException {
 
 		initMap();
 		
+		JPanel panel = new JPanel();
+		
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
+		JPanel textPanel = new JPanel();
+
+		JButton openButton = new JButton("Open texture pack");
+		openButton.addActionListener(this);
+		openButton.setPreferredSize(saveButtonSize);
+		openButton.setMinimumSize(saveButtonSize);
+		openButton.setMaximumSize(saveButtonSize);
+		openButton.setFocusable(false);
+		openButton.setMnemonic(79);
+		openButton.setBackground(buttonColor);
+		panel.add(openButton);
+		
 		frame = new JFrame("Tetris Game");
 		try {
+			
+			customFont= Font.createFont(Font.TRUETYPE_FONT, new File("./font/PixelifySans-Regular.ttf"));
+
+			
 			blocks.add(new Block((int) (Math.random() * 7) + 1));
 			blocks.add(new Block((int) (Math.random() * 7) + 1));
 			blocks.peek().setPosition(new Point(width / 2 - 2, 1));
@@ -167,16 +213,41 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 			initMap();
 			updateBlockOnMap(false);
 			
-			renderer = new RenderMap(new Point(0, 0), 30, map, getNext(blocks));
-		} catch (IOException e) {
+			renderer = new RenderMap(new Point(0, 0), 30, map, getNext(blocks), fManager, bgColor, customFont);
+		} catch (IOException | FontFormatException e) {
 
 			System.out.println("Something went wrong.");
 		}
 
+
+		customFont = customFont.deriveFont(30f);
+		openButton.setFont(customFont);
+		
 		frame.setSize(new Dimension(900, 900));
-		frame.setBackground(Color.blue);
+		frame.setMinimumSize(new Dimension(900, 900));
+		frame.setMaximumSize(new Dimension(900, 900));
+		frame.setPreferredSize(new Dimension(900, 900));
+		frame.setBackground(bgColor);
 		frame.addKeyListener(this);
-		frame.add(this);
+		
+
+        panel.setPreferredSize(saveButtonSize);
+		panel.setMinimumSize(saveButtonSize);
+		panel.setMaximumSize(saveButtonSize);
+        panel.setSize(getPreferredSize());
+        panel.setBackground(bgColor);
+        
+		mainPanel.add(this);
+		mainPanel.add(panel);
+		
+		mainPanel.addKeyListener(this);
+		mainPanel.setFocusable(true);
+		
+		this.setBackground(bgColor);
+        mainPanel.setBackground(bgColor);
+        
+		frame.add(mainPanel);
+		
 
 		frame.setResizable(false);
 
@@ -185,22 +256,25 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setVisible(true);
+		
 
 		store = new Store();
 		
 		try {
-			audioPlayer = new SimpleAudioPlayer(); 
+			// audioPlayer = new SimpleAudioPlayer(); 
 	  
-			audioPlayer.play();
+			// audioPlayer.play();
 		} catch(Error e) {
 			System.out.println("error with music");
 		}
+		
+		
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
 
-		if (!isDead) {
+		if (!isDead && !isPaused) {
 			trimmedTile = getTrimmedTile();
 
 			Point current = blocks.peek().getPosition();
@@ -313,6 +387,39 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
+        // if the user presses the save button show the save dialog
+        String com = arg0.getActionCommand();
+ 
+        if (com != null && com.equals("Open texture pack")) {
+            
+            JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+
+            j.setCurrentDirectory(new java.io.File("."));
+            j.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+            // Pauses program
+    		isPaused = true;
+    		
+            int approve = j.showOpenDialog(null);
+            
+            // Executes after the dialog is closed
+            isPaused = false;
+          
+            if (approve == JFileChooser.APPROVE_OPTION) {
+                // set the label to the path of the selected directory
+            	try {
+					renderer.refreshFiles(j.getSelectedFile());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                //l.setText(j.getSelectedFile().getAbsolutePath());
+
+            }
+            
+            getTopLevelAncestor().requestFocus(); // Required to regain controls after menu!
+            
+        }
 		// TODO Auto-generated method stub
 		repaint();
 	}
@@ -364,7 +471,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	}
 
 	public void updateBlockOnMap(boolean permanent) {
-		if (!isDead) {
+		if (!isDead && !isPaused) {
 			
 			Point p = blocks.peek().getPosition();
 
@@ -414,7 +521,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	public void death() { // death logic
 		if (isDead != true) {
 			
-			audioPlayer.stop();
+			// audioPlayer.stop();
 
 			isDead = true;
 			System.out.println("Score: " + score);
@@ -780,5 +887,4 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 		}
 		return null;
 	}
-
 }

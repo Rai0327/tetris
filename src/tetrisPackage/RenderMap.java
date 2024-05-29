@@ -45,7 +45,21 @@ public class RenderMap {
 	
 	private BufferedImage holdImage;
 	
-	public RenderMap(Point startPos, int rectWidth, ArrayList<ArrayList<Integer>> map, Block nextB) throws IOException {
+	private FileManager fileManager;
+	
+	private Color bgColor = new Color(0, 0, 0);
+	
+	private Font font;
+	
+	public RenderMap(Point startPos, int rectWidth, ArrayList<ArrayList<Integer>> map, Block nextB, FileManager f, Color bg, Font font) throws IOException {
+		
+		bgColor = bg;
+		
+		this.font = font;
+		
+		fileManager = f;
+		
+		ArrayList<File> files = f.getListOfFiles();
 		
 		sX = startPos.x;
 		sY = startPos.y;
@@ -57,11 +71,10 @@ public class RenderMap {
 		next = nextB.getTrimmedTile();
 		nextColor = nextB.getColor();
 		
-		image.add(ImageIO.read(new File("bg0.jpeg")));
-		image.add(ImageIO.read(new File("bg1.jpeg")));
-		image.add(ImageIO.read(new File("bg2.png")));
-
-		image.add(ImageIO.read(new File("bg2.png")));
+		image.add(ImageIO.read(files.get(0)));
+		image.add(ImageIO.read(files.get(1)));
+		image.add(ImageIO.read(files.get(2)));
+		image.add(ImageIO.read(files.get(3)));
 		
 		bufferedImage = new BufferedImage(rectWidth*map.get(0).size(), rectWidth*map.size(), BufferedImage.TYPE_INT_ARGB);
 		
@@ -113,7 +126,13 @@ public class RenderMap {
 				BufferedImage buffer;
 				
 				if (tile == 0) {
-					buffer = changeColor(image.get(tile), new Color(255, 255, 255));
+					buffer = new BufferedImage(image.get(tile).getWidth(), image.get(tile).getHeight(), BufferedImage.TYPE_INT_ARGB);
+					
+					for (int r = 0; r < buffer.getHeight(); r++) {
+						for (int c1 = 0; c1 < buffer.getWidth(); c1++) {
+							buffer.setRGB(r, c1, bgColor.getRGB());
+						}
+					}
 				} else {
 					buffer = changeColor(image.get(tile), c);
 				}
@@ -134,11 +153,11 @@ public class RenderMap {
 		nextColor = nextB.getColor();
 		nextImage = new BufferedImage(rW*next.get(0).size(), rW*next.size(), BufferedImage.TYPE_INT_ARGB);
 		
-		g.setFont(new Font("Calibri", Font.PLAIN, 25)); 
+		font = font.deriveFont(30f);
+		g.setFont(font); 
 		g.drawString("Next Block:", 325, 100);
 		
-		g.setFont(new Font("Calibri", Font.PLAIN, 25)); 
-		g.drawString("Hold Block:", 325, 225);
+		g.drawString("Hold Block (press c):", 325, 225);
 		
 	    if (bufferedImage != null) {
 
@@ -189,6 +208,17 @@ public class RenderMap {
 	
 	public void setMap(ArrayList<ArrayList<Integer>> m) {
 		this.map = m;
+	}
+	
+	public void refreshFiles(File directory) throws Exception {
+		fileManager.refreshFiles(directory);
+		ArrayList<File> files = fileManager.getListOfFiles();
+		
+		image.clear();
+		image.add(ImageIO.read(files.get(0)));
+		image.add(ImageIO.read(files.get(1)));
+		image.add(ImageIO.read(files.get(2)));
+		image.add(ImageIO.read(files.get(3)));
 	}
 	
 	
