@@ -82,7 +82,7 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 	private boolean isPaused = false;
 	
 	// Threshold of score
-	private int threshold = 100;
+	private int threshold = 5;
 	
 	// Background color
 	private Color bgColor = new Color(96, 204, 175);
@@ -155,9 +155,9 @@ public class Frame extends JPanel implements KeyListener, ActionListener {
 					}
 	
 				}
-				if (score > threshold && gravityFactor != 1) {
+				while (score > threshold && gravityFactor != 1) {
 					gravityFactor--;
-					threshold += 100;
+					threshold += 5;
 				}
 	
 				updateBlockOnMap(false);
